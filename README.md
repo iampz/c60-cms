@@ -10,3 +10,8 @@ https://iampz.github.io/c60-cms/c60-json-section-01.json
 
 ข้อมูลสำหรับใช้ copy เพื่อให้ได้ format จะต้องอยู่ในรูป html สามารถดาวน์โหลดโดยกดลิ้งค์ด้านล่าง
 https://iampz.github.io/c60-cms/c60-html.zip
+
+shortcuts สำหรับแก้ formatting เพิ่มเติม
+1. ctrl+u = ขีดเส้นใต้
+2. ctrl+y = ขีดฆ่า
+3. ctrl+b = ตัวหนา
