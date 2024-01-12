@@ -14,6 +14,6 @@ https://iampz.github.io/c60-cms/c60-html.zip
 
 ### Shortcuts สำหรับแก้ Formatting
 ให้ทำการเลือกข้อความที่ต้องการแล้วกดปุ่มตามด้านล่าง
-1. Ctrl+U = ขีดเส้นใต้
-2. Ctrl+Y = ขีดฆ่า
-3. Ctrl+B = ตัวหนา
+- Ctrl+U = ขีดเส้นใต้
+- Ctrl+Y = ขีดฆ่า
+- Ctrl+B = ตัวหนา
