@@ -242,7 +242,7 @@ function editForms(oldTR, index) {
   newTR.id = 'edit-row';
   newTR.dataset.index = index;
   newTR.innerHTML = `
-    <td class="edit-cell" data-type="number" contenteditable>${$data[index][0]}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index][0]}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index][1]}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index][2]}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index][3]}</td>
@@ -273,7 +273,7 @@ function renderForms() {
   const tr = document.createElement('tr');
   tr.id = 'add-row';
   tr.innerHTML = `
-    <td class="add-cell" data-type="number" contenteditable></td>
+    <td class="add-cell" data-type="text" contenteditable></td>
     <td class="add-cell" data-type="text" contenteditable></td>
     <td class="add-cell" data-type="text" contenteditable></td>
     <td class="add-cell" data-type="text" contenteditable></td>
@@ -382,8 +382,8 @@ function renderTable(data, dataTable) {
 
   const headerData = [[
     'หมวด'
-  , 'มาตรา'
   , 'ส่วน'
+  , 'มาตรา'
   , 'ร่างมาตรา'
   , 'ร่างบทบัญญัติ'
   , 'ประเด็นการพิจารณา'
