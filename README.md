@@ -1,6 +1,6 @@
 # กรธ.60 CMS
 
-## วิธีใช้
+### วิธีใช้
 1. ดาวน์โหลดข้อมูลตัวอย่าง (หมวด 1)
 https://iampz.github.io/c60-cms/c60-json-section-01.json
 2. เข้าใช้แอพที่ https://iampz.github.io/c60-cms/
