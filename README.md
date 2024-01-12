@@ -17,3 +17,4 @@ https://iampz.github.io/c60-cms/c60-html.zip
 - Ctrl+U = ขีดเส้นใต้
 - Ctrl+Y = ขีดฆ่า
 - Ctrl+B = ตัวหนา
+- Ctrl+I = ตัวเอียง
