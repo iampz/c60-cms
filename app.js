@@ -3,291 +3,30 @@ var $data = (localStorage.getItem('c60-cms'))
 : [];
 
 
-// wrap text node in span
-function wrapText(elem) {
-  elem.childNodes.forEach(node => {
-    if (node.nodeType === 3) {
-      const text = node.data.replace(/\s+/g, ' ');
-      if (text !== ' ' && node.parentNode.tagName.match(/^p$/i)) {
-        const span = document.createElement('span');
-        span.innerText = text;
-        node.replaceWith(span);
-      } else node.replaceWith(text);
-    } else if (node.childNodes) wrapText(node);
-    return node;
-  });
-  return elem;
-}
+function renderTable(data, dataTable) {
 
+  const headerData = [[
+    'หมวด'
+  , 'ส่วน'
+  , 'มาตรา'
+  , 'ร่างมาตรา'
+  , 'ร่างบทบัญญัติ'
+  , 'ประเด็นการพิจารณา'
+  , 'มติที่ประชุม'
+  , 'หมายเหตุ'
+  , 'ผู้อภิปราย'
+  , 'ประชุมครั้งที่'
+  , 'วันที่'
+  , 'หน้า'
+  ]];
 
-// remove class and css, except underline and strikethrough    
-function simplifyCSS(elem) {
-  elem.childNodes.forEach(node => {
-    if (node.tagName && node.tagName.match(/^span$/i)) {
-      if (
-        getComputedStyle(node).fontFamily !== '"TH SarabunPSK", sans-serif'
-        && getComputedStyle(node).fontFamily !== 'Sarabun, Arial, sans-serif'
-        && getComputedStyle(node).fontFamily !== 'Arial'
-      ) {
-        const newNode = document.createElement('strike');
-        newNode.innerHTML = node.innerHTML;
-        node.replaceWith(newNode);
-      } else if (getComputedStyle(node).textDecorationLine === 'underline') {
-        const newNode = document.createElement('u');
-        newNode.innerHTML = node.innerHTML;
-        node.replaceWith(newNode);
-      } else {
-        const newNode = document.createTextNode(node.textContent);
-        node.replaceWith(newNode);
-      }
-    }
-    if (node.childNodes) simplifyCSS(node);
-    if (node.tagName) {
-      node.removeAttribute('class');
-      node.removeAttribute('style');
-    }
-    return node;
-  });
-  return elem;
-}
-
-
-// cleanup junk characters from pdf and swap thai numeral to arabic numeral
-function fixChars(elem) {
-  elem.innerHTML = elem.innerHTML
-    .replace(/๐/g, '0')
-    .replace(/๑/g, '1')
-    .replace(/๒/g, '2')
-    .replace(/๓/g, '3')
-    .replace(/๔/g, '4')
-    .replace(/๕/g, '5')
-    .replace(/๖/g, '6')
-    .replace(/๗/g, '7')
-    .replace(/๘/g, '8')
-    .replace(/๙/g, '9')
-    .replace(/[,]/g, '่')
-    .replace(/[,]/g, '้')
-    .replace(//g, '็')
-    .replace(//g, '์')
-    .replace(//g, 'ิ')
-    .replace(//g, 'ี')
-    .replace(//g, 'ื')
-    .replace(//g, 'ั')
-    .replace(/ํา/g, 'ำ')
-    .replace(/่ี/g, 'ี่');
-  return elem;
-}
-
-
-function render() {        
-  const dataSection = document.getElementById('data-section');
-  dataSection.innerHTML = '';
-  dataSection.appendChild( renderTable($data, dataSection) ) ;
-  formsInit();
-  return dataSection;
-}
-
-function save(dataArr) {
-  localStorage.setItem('c60-cms', JSON.stringify(dataArr));
-  render();
-  return dataArr;
-}
-
-
-function mappingData(cell) {
-  if (cell.dataset.type === 'array') {
-    const lists = Array.from(
-      cell.querySelectorAll('li')
-    );
-    return lists
-      .map(list => list
-        .textContent
-        .replace(/\&nbsp\;/g, ' ')
-        .trim()
-      )
-      .filter(text => text);
-  } else {
-    return cell
-      .innerHTML
-      .replace(/\&nbsp\;/g, ' ')
-      .trim()
-      .replace(/\<p\>\s*<\/p\>/g, '');
-  }
-}
-
-
-function cancelHandler(evt) {
-  const oldTR = evt.target.parentNode.parentNode;
-  const index = oldTR.dataset.index;
-  const newTR = renderRows([$data[index]], { position: index });
-  return evt;
-}
-
-
-function editHandler(evt) {
+  const table = document.createElement('table');
+  table.id = 'data-table';
+  table.border = 1;
+  table.appendChild(renderRows(headerData, { isHeader: true }));
+  table.appendChild(renderRows(data));
+  return table;
   
-  const tr = evt.target.parentNode.parentNode;
-  const index = tr.dataset.index;
-  const editCells = Array.from(
-    tr.querySelectorAll('.edit-cell')
-  );
-  const editData = editCells.map(mappingData);
-
-  $data[index] = editData;
-  save($data);
-  // tr.scrollIntoView({ behavior: 'smooth', block: "center" });
-  return editData;
-
-}
-
-
-function addHandler(evt) {
-  
-  const addCells = Array.from(
-    document.querySelectorAll('.add-cell')
-  );
-  const newData = addCells.map(mappingData);
-
-  $data.push(newData);
-  save($data);
-  addCells[0].focus();
-  // evt.target.scrollIntoView({ behavior: 'smooth', block: "end" });
-  return newData;
-
-}
-
-
-function formsInit(tr) {
-  
-  if (tr) {
-    const saveBtn = tr.querySelector('.data-save');
-    const cancelBtn = tr.querySelector('.data-cancel');
-    saveBtn.addEventListener('click', editHandler);
-    cancelBtn.addEventListener('click', cancelHandler);
-  } else {
-    const addBtn = document.getElementById('data-add');
-    addBtn.addEventListener('click', addHandler);
-  }
-
-  var textProcessing;
-  const initCells = (tr)
-    ? tr.querySelectorAll('.edit-cell')
-    : document.querySelectorAll('.add-cell');
-    
-  initCells.forEach(cell => {
-  
-    if (cell.dataset.type === 'html') {
-      textProcessing = evt => {
-        if (!cell.textContent) cell.innerHTML = '<p>&nbsp;</p>';
-        return evt
-      };
-      cell.addEventListener('keyup', evt => {
-        if (cell.matches(':focus') && evt.ctrlKey) {
-          if (evt.keyCode === 89) { // ctrl + y
-            document.execCommand('strikeThrough', { isHeader: true });
-          } else if (evt.keyCode === 86) { // ctrl + v
-            wrapText(cell);
-            simplifyCSS(cell);
-            fixChars(cell);
-          }
-        }
-        return evt;
-      });
-
-      
-    } else if (cell.dataset.type === 'text') {
-      textProcessing = evt =>
-        cell.innerText = cell.textContent;
-      
-    } else if (cell.dataset.type === 'number') {
-      textProcessing = evt =>
-        cell.innerText = cell.textContent.replace(/[^0-9]/g, '');
-      
-    } else if (cell.dataset.type === 'nonalphabet') {
-      textProcessing = evt =>
-        cell.innerText = cell.textContent.replace(/[a-zA-Zก-๙]/g, '');
-      
-    } else if (cell.dataset.type === 'array') {
-      textProcessing = evt => {
-        if (!cell.textContent) cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
-        cell.innerHTML = cell.innerHTML
-          .replace(/\<li\>\<li\>/g, '<li>')
-          .replace(/\<\/li\>\<\/li\>/g, '</li>');
-        cell.querySelectorAll('li').forEach(li => li.innerText = li.textContent);
-        return evt;
-      };
-    }
-    
-    ['focus', 'blur'].forEach(
-      evt => cell.addEventListener(evt, textProcessing)
-    );
-    return cell;
-    
-  });
-  
-  initCells[0].focus();
-  return initCells;
-  
-}
-
-
-function editForms(oldTR, index) {
-  
-  const arrData = $data[index][8];
-  const arrHTML = (arrData.length)
-    ? '<ul><li>' + arrData.join('</li><li>') + '</li></ul>'
-    : '';
-
-  const newTR = document.createElement('tr');
-  newTR.id = 'edit-row';
-  newTR.dataset.index = index;
-  newTR.innerHTML = `
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][0]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][1]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][2]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][3]}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index][4]}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index][5]}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index][6]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][7]}</td>
-    <td class="edit-cell" data-type="array" contenteditable>${arrHTML}</td>
-    <td class="edit-cell" data-type="number" contenteditable>${$data[index][9]}</td>
-    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index][10]}</td>
-    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index][11]}</td>
-    <td data-type="action">
-      <button class="data-save">Save</button>
-      <br /><br />
-      <button class="data-cancel">Cancel</button>
-    </td>
-  `;
-  
-  oldTR.replaceWith(newTR);
-  formsInit(newTR);
-  
-  return newTR;
-  
-}
-
-
-function renderForms() {
-  const tr = document.createElement('tr');
-  tr.id = 'add-row';
-  tr.innerHTML = `
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="html" contenteditable></td>
-    <td class="add-cell" data-type="html" contenteditable></td>
-    <td class="add-cell" data-type="html" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="array" contenteditable></td>
-    <td class="add-cell" data-type="number" contenteditable></td>
-    <td class="add-cell" data-type="nonalphabet" contenteditable></td>
-    <td class="add-cell" data-type="nonalphabet" contenteditable></td>
-    <td data-type="action"><button id="data-add">Add</button></td>
-  `;
-  return tr;
 }
 
 
@@ -378,30 +117,268 @@ function renderRows(rows, options={}) {
 }
 
 
-function renderTable(data, dataTable) {
+function renderForms() {
+  const tr = document.createElement('tr');
+  tr.id = 'add-row';
+  tr.innerHTML = `
+    <td class="add-cell" data-type="text" contenteditable></td>
+    <td class="add-cell" data-type="text" contenteditable></td>
+    <td class="add-cell" data-type="text" contenteditable></td>
+    <td class="add-cell" data-type="text" contenteditable></td>
+    <td class="add-cell" data-type="html" contenteditable></td>
+    <td class="add-cell" data-type="html" contenteditable></td>
+    <td class="add-cell" data-type="html" contenteditable></td>
+    <td class="add-cell" data-type="text" contenteditable></td>
+    <td class="add-cell" data-type="array" contenteditable></td>
+    <td class="add-cell" data-type="number" contenteditable></td>
+    <td class="add-cell" data-type="nonalphabet" contenteditable></td>
+    <td class="add-cell" data-type="nonalphabet" contenteditable></td>
+    <td data-type="action"><button id="data-add">Add</button></td>
+  `;
+  return tr;
+}
 
-  const headerData = [[
-    'หมวด'
-  , 'ส่วน'
-  , 'มาตรา'
-  , 'ร่างมาตรา'
-  , 'ร่างบทบัญญัติ'
-  , 'ประเด็นการพิจารณา'
-  , 'มติที่ประชุม'
-  , 'หมายเหตุ'
-  , 'ผู้อภิปราย'
-  , 'ประชุมครั้งที่'
-  , 'วันที่'
-  , 'หน้า'
-  ]];
 
-  const table = document.createElement('table');
-  table.appendChild(renderRows(headerData, { isHeader: true }));
-  table.appendChild(renderRows(data));
-  table.border = 1;
-  table.id = 'data-table';
-  return table;
+function editForms(oldTR, index) {
   
+  const arrData = $data[index][8];
+  const arrHTML = (arrData.length)
+    ? '<ul><li>' + arrData.join('</li><li>') + '</li></ul>'
+    : '';
+
+  const newTR = document.createElement('tr');
+  newTR.id = 'edit-row';
+  newTR.dataset.index = index;
+  newTR.innerHTML = `
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index][0]}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index][1]}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index][2]}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index][3]}</td>
+    <td class="edit-cell" data-type="html" contenteditable>${$data[index][4]}</td>
+    <td class="edit-cell" data-type="html" contenteditable>${$data[index][5]}</td>
+    <td class="edit-cell" data-type="html" contenteditable>${$data[index][6]}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index][7]}</td>
+    <td class="edit-cell" data-type="array" contenteditable>${arrHTML}</td>
+    <td class="edit-cell" data-type="number" contenteditable>${$data[index][9]}</td>
+    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index][10]}</td>
+    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index][11]}</td>
+    <td data-type="action">
+      <button class="data-save">Save</button>
+      <br /><br />
+      <button class="data-cancel">Cancel</button>
+    </td>
+  `;
+  
+  oldTR.replaceWith(newTR);
+  formsInit(newTR);
+  
+  return newTR;
+  
+}
+
+
+function formsInit(tr) {
+  
+  if (tr) {
+    const saveBtn = tr.querySelector('.data-save');
+    const cancelBtn = tr.querySelector('.data-cancel');
+    saveBtn.addEventListener('click', editHandler);
+    cancelBtn.addEventListener('click', cancelHandler);
+  } else {
+    const addBtn = document.getElementById('data-add');
+    addBtn.addEventListener('click', addHandler);
+  }
+
+  var textProcessing;
+  const initCells = (tr)
+    ? tr.querySelectorAll('.edit-cell')
+    : document.querySelectorAll('.add-cell');
+    
+  initCells.forEach(cell => {
+  
+    if (cell.dataset.type === 'html') {
+      textProcessing = evt => {
+        if (!cell.textContent) cell.innerHTML = '<p>&nbsp;</p>';
+        return evt
+      };
+      cell.addEventListener('keyup', evt => {
+        if (cell.matches(':focus') && evt.ctrlKey) {
+          if (evt.keyCode === 89) { // ctrl + y
+            document.execCommand('strikeThrough', { isHeader: true });
+          } else if (evt.keyCode === 86) { // ctrl + v
+            wrapText(cell);
+            simplifyCSS(cell);
+            fixChars(cell);
+          }
+        }
+        return evt;
+      });
+
+      
+    } else if (cell.dataset.type === 'text') {
+      textProcessing = evt =>
+        cell.innerText = cell.textContent;
+      
+    } else if (cell.dataset.type === 'number') {
+      textProcessing = evt =>
+        cell.innerText = cell.textContent.replace(/[^0-9]/g, '');
+      
+    } else if (cell.dataset.type === 'nonalphabet') {
+      textProcessing = evt =>
+        cell.innerText = cell.textContent.replace(/[a-zA-Zก-๙]/g, '');
+      
+    } else if (cell.dataset.type === 'array') {
+      textProcessing = evt => {
+        if (!cell.textContent) cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
+        cell.innerHTML = cell.innerHTML
+          .replace(/\<li\>\<li\>/g, '<li>')
+          .replace(/\<\/li\>\<\/li\>/g, '</li>');
+        cell.querySelectorAll('li').forEach(li => li.innerText = li.textContent);
+        return evt;
+      };
+    }
+    
+    ['focus', 'blur'].forEach(
+      evt => cell.addEventListener(evt, textProcessing)
+    );
+    return cell;
+    
+  });
+  
+  initCells[0].focus();
+  return initCells;
+  
+}
+
+
+function addHandler(evt) {
+  const addCells = Array.from(
+    document.querySelectorAll('.add-cell')
+  );
+  const newData = addCells.map(mappingData);
+  $data.push(newData);
+  save($data);
+  addCells[0].focus();
+  return newData;
+}
+
+
+function editHandler(evt) {
+  const tr = evt.target.parentNode.parentNode;
+  const index = tr.dataset.index;
+  const editCells = Array.from(
+    tr.querySelectorAll('.edit-cell')
+  );
+  const editData = editCells.map(mappingData);
+  $data[index] = editData;
+  save($data);
+  return editData;
+}
+
+
+function cancelHandler(evt) {
+  const oldTR = evt.target.parentNode.parentNode;
+  const index = oldTR.dataset.index;
+  const newTR = renderRows([$data[index]], { position: index });
+  return evt;
+}
+
+
+function mappingData(cell) {
+  if (cell.dataset.type === 'array') {
+    const lists = Array.from(
+      cell.querySelectorAll('li')
+    );
+    return lists
+      .map(list => list
+        .textContent
+        .replace(/\&nbsp\;/g, ' ')
+        .trim()
+      )
+      .filter(text => text);
+  } else {
+    return cell
+      .innerHTML
+      .replace(/\&nbsp\;/g, ' ')
+      .trim()
+      .replace(/\<p\>\s*<\/p\>/g, '');
+  }
+}
+
+
+// wrap text node in span
+function wrapText(elem) {
+  elem.childNodes.forEach(node => {
+    if (node.nodeType === 3) {
+      const text = node.data.replace(/\s+/g, ' ');
+      if (text !== ' ' && node.parentNode.nodeName.match(/^p$/i)) {
+        const span = document.createElement('span');
+        span.innerText = text;
+        node.replaceWith(span);
+      } else node.replaceWith(text);
+    } else if (node.childNodes) wrapText(node);
+    return node;
+  });
+  return elem;
+}
+
+
+// remove class and css, except underline and strikethrough    
+function simplifyCSS(elem) {
+  elem.childNodes.forEach(node => {
+    if (node.nodeName.match(/^span$/i)) {
+      if (
+        getComputedStyle(node).fontFamily !== '"TH SarabunPSK", sans-serif'
+        && getComputedStyle(node).fontFamily !== 'Sarabun, Arial, sans-serif'
+        && getComputedStyle(node).fontFamily !== 'Arial'
+      ) {
+        const newNode = document.createElement('strike');
+        newNode.innerHTML = node.innerHTML;
+        node.replaceWith(newNode);
+      } else if (getComputedStyle(node).textDecorationLine === 'underline') {
+        const newNode = document.createElement('u');
+        newNode.innerHTML = node.innerHTML;
+        node.replaceWith(newNode);
+      } else {
+        const newNode = document.createTextNode(node.textContent);
+        node.replaceWith(newNode);
+      }
+    }
+    if (node.childNodes) simplifyCSS(node);
+    if (node.tagName) {
+      node.removeAttribute('class');
+      node.removeAttribute('style');
+    }
+    return node;
+  });
+  return elem;
+}
+
+
+// cleanup junk characters from pdf and swap thai numeral to arabic numeral
+function fixChars(elem) {
+  elem.innerHTML = elem.innerHTML
+    .replace(/๐/g, '0')
+    .replace(/๑/g, '1')
+    .replace(/๒/g, '2')
+    .replace(/๓/g, '3')
+    .replace(/๔/g, '4')
+    .replace(/๕/g, '5')
+    .replace(/๖/g, '6')
+    .replace(/๗/g, '7')
+    .replace(/๘/g, '8')
+    .replace(/๙/g, '9')
+    .replace(/[,]/g, '่')
+    .replace(/[,]/g, '้')
+    .replace(//g, '็')
+    .replace(//g, '์')
+    .replace(//g, 'ิ')
+    .replace(//g, 'ี')
+    .replace(//g, 'ื')
+    .replace(//g, 'ั')
+    .replace(/ํา/g, 'ำ')
+    .replace(/่ี/g, 'ี่');
+  return elem;
 }
 
 
@@ -434,15 +411,27 @@ function download(evt) {
 }
 
 
-(function init(param) {
-  
+function save(dataArr) {
+  localStorage.setItem('c60-cms', JSON.stringify(dataArr));
+  render();
+  return dataArr;
+}
+
+
+function render() {        
   const dataSection = document.getElementById('data-section');
+  dataSection.innerHTML = '';
+  dataSection.appendChild( renderTable($data, dataSection) ) ;
+  formsInit();
+  return dataSection;
+}
+
+
+(function init(param) {
 
   addEventListener('load', evt => {
-  
-    // render data from localStorage
-    dataSection.appendChild( renderTable($data, dataSection) );
-    formsInit();
+    
+    render();
   
     // reset button
     document.getElementById('data-reset').addEventListener('click', evt => {
@@ -483,11 +472,13 @@ function download(evt) {
       evt.stopPropagation();
       evt.preventDefault();
       evt.dataTransfer.dropEffect = 'upload';
+      return evt;
     });
     document.body.addEventListener('drop', evt => {
       evt.stopPropagation();
       evt.preventDefault();
       upload(evt.dataTransfer);
+      return evt;
     });
     
     // back to top
@@ -497,6 +488,7 @@ function download(evt) {
       document
         .getElementById('data-action')
         .scrollIntoView({ behavior: 'smooth', block: "start" });
+      return evt;
     });
 
     return evt;
