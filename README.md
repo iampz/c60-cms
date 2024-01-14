@@ -12,6 +12,10 @@ https://iampz.github.io/c60-cms/c60-json-section-01.json
 
 https://iampz.github.io/c60-cms/c60-html.zip
 
+หรืออาจจะเข้าทางเว็บตาม link ด้านล่าง โดยเลขไฟล์จะไล่ไปตามลำดับจาก 001.html จนถึง 116.html
+
+https://iampz.github.io/c60-cms/sources/001.html
+
 ### Shortcuts สำหรับแก้ Formatting
 ให้ทำการเลือกข้อความที่ต้องการแล้วกดปุ่มตามด้านล่าง
 - Ctrl+U = ขีดเส้นใต้
