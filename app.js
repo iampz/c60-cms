@@ -98,9 +98,7 @@ function renderTBody(rowIndex) {
     
     actionTD.appendChild(editButton);
     actionTD.appendChild( document.createElement('br') );
-    actionTD.appendChild( document.createElement('br') );
     actionTD.appendChild(moveButton);
-    actionTD.appendChild( document.createElement('br') );
     actionTD.appendChild( document.createElement('br') );
     actionTD.appendChild(deleteButton);
     tr.appendChild(actionTD);
@@ -113,12 +111,13 @@ function renderTBody(rowIndex) {
     moveButton.textContent = 'Move';
     moveButton.addEventListener('click', evt => {
       const to = prompt('Move this record to what ID?');
-      const row = $data[id];
-      save($data
-        .toSpliced(id, 1)
-        .toSpliced(to-1, 0, row)
-      );
-      
+      if (to) {
+        const row = $data[id];
+        save($data
+          .toSpliced(id, 1)
+          .toSpliced(to-1, 0, row)
+        );
+      }      
       return evt;
     });
     
@@ -174,7 +173,7 @@ function editForms(oldTR, index) {
   newTR.dataset.index = index;
 
   newTR.innerHTML = `
-    <td>${index+1}</td>
+    <td>${Number(index)+1}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index]['หมวด']}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index]['ส่วน']}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index]['มาตรา']}</td>
@@ -187,8 +186,7 @@ function editForms(oldTR, index) {
     <td class="edit-cell" data-type="number" contenteditable>${$data[index]['ประชุมครั้งที่']}</td>
     <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index]['หน้า']}</td>
     <td data-type="action">
-      <button class="data-save">Save</button>
-      <br /><br />
+      <button class="data-save">Save</button><br />
       <button class="data-cancel">Cancel</button>
     </td>
   `;
