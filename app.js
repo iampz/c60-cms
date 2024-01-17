@@ -1,126 +1,150 @@
-var $data = (localStorage.getItem('c60-cms'))
-? JSON.parse(localStorage.getItem('c60-cms'))
-: [];
+let $data = getData();
+
+const $keys = [
+  'หมวด', 'ส่วน', 'มาตรา', 'ร่างมาตรา',
+  'ร่างบทบัญญัติ', 'ประเด็นการพิจารณา', 'มติที่ประชุม',
+  'หมายเหตุ', 'ผู้อภิปราย', 'ประชุมครั้งที่', 'หน้า'
+];
 
 
-function renderTable(data, dataTable) {
+function render() {        
+  const dataSection = document.getElementById('data-section');
+  dataSection.innerHTML = '';
+  dataSection.appendChild( renderTable($data, dataSection) ) ;
+  formsInit();
+  return dataSection;
+}
 
-  const headerData = [[
-    'หมวด'
-  , 'ส่วน'
-  , 'มาตรา'
-  , 'ร่างมาตรา'
-  , 'ร่างบทบัญญัติ'
-  , 'ประเด็นการพิจารณา'
-  , 'มติที่ประชุม'
-  , 'หมายเหตุ'
-  , 'ผู้อภิปราย'
-  , 'ประชุมครั้งที่'
-  , 'วันที่'
-  , 'หน้า'
-  ]];
 
+function renderTable() {
   const table = document.createElement('table');
   table.id = 'data-table';
   table.border = 1;
-  table.appendChild(renderRows(headerData, { isHeader: true }));
-  table.appendChild(renderRows(data));
+  table.appendChild(renderTHead());
+  table.appendChild(renderTBody());
   return table;
-  
 }
 
 
-function renderRows(rows, options={}) {
+function renderTHead() {
   
-  const tableGroupTag = (options.isHeader) ? 'thead' : 'tbody'
-  const tableGroup = (options.position)
-    ? document.querySelector(tableGroupTag)
-    : document.createElement(tableGroupTag);
+  const thead = document.createElement('thead');
+  const tr = document.createElement('tr');
+  thead.appendChild(tr);
+
+  const idTH = document.createElement('th');
+  idTH.textContent = 'ID';
+  tr.appendChild(idTH);
   
-  if (rows) rows.forEach((cells, index) => {
-  
-    const row = document.createElement('tr');
-    cells.forEach(cellData => {
-    
-      const cell = document.createElement(
-        (options.isHeader) ? 'th' : 'td'
-      );
-      
-      cell.innerHTML = (Array.isArray(cellData) && cellData.length)
-      ? '<ul><li>' + cellData.join('</li><li>') + '</li></ul>'
-      : cellData;
-      
-      row.appendChild(cell);
-      
-    });
-    
-    // action column with delete data row button
-    if (options.isHeader) {
-      const actionCell = document.createElement('th');
-      actionCell.textContent = 'Action';
-      row.appendChild(actionCell);
-    } else {
-    
-      const actionCell = document.createElement('td');
-      const editButton = document.createElement('button');
-      const deleteButton = document.createElement('button');
-      
-      editButton.textContent = 'Edit';
-      editButton.addEventListener('click', evt => {
-        const tr = actionCell.parentNode;
-        editForms(tr, (options.position)
-          ? options.position
-          : index
-        );
-        return evt;
-      });
-      
-      deleteButton.textContent = 'Delete';
-      deleteButton.addEventListener('click', evt => {
-        if ( confirm('ต้องการลบข้อมูลบรรทัดนี้?') ) {
-          const tr = actionCell.parentNode;
-          tr.parentNode.removeChild(tr);
-          $data.splice((options.position)
-            ? options.position
-            : index
-          , 1);
-          save($data);
-        }
-        return evt;
-      });
-      
-      actionCell.appendChild(editButton);
-      actionCell.appendChild( document.createElement('br') );
-      actionCell.appendChild( document.createElement('br') );
-      actionCell.appendChild(deleteButton);
-      row.appendChild(actionCell);
-      
-    }
-    
-    if (options.position) {
-      tableGroup
-        .querySelectorAll('tr')[options.position]
-        .replaceWith(row);
-    } else {
-      tableGroup.appendChild(row);
-    }
-    
-    return cells;
-    
+  $keys.forEach(key => {
+    const th = document.createElement('th');
+    th.textContent = key;
+    tr.appendChild(th);
   });
   
-  // last row will show forms to append new row
-  if (!options.isHeader && !options.position)
-    tableGroup.appendChild(renderForms());
-  return tableGroup;
+  const actionTH = document.createElement('th');
+  actionTH.textContent = 'Action';
+  tr.appendChild(actionTH);
+  
+  return thead;
   
 }
 
 
-function renderForms() {
+function renderTBody(rowIndex) {
+  
+  const data = rowIndex
+    ? [ $data[rowIndex] ]
+    : $data;
+  
+  const tbody = rowIndex
+    ? document.querySelector('tbody')
+    : document.createElement('tbody');
+  
+  data.forEach((row, index) => {
+
+    const id = rowIndex ? rowIndex : index;
+    const tr = document.createElement('tr');
+    const idTD = document.createElement('td');
+    idTD.textContent = Number(id) + 1;
+    tr.dataset.index = index;
+    tr.appendChild(idTD);
+  
+    $keys.forEach(key => {
+    
+      const td = document.createElement('td');
+      const tdData = row[key];
+      td.innerHTML = (Array.isArray(tdData) && tdData.length)
+      ? '<ul><li>' + tdData.join('</li><li>') + '</li></ul>'
+      : tdData;
+      tr.appendChild(td);
+      
+      if (rowIndex) {
+        tbody
+          .querySelectorAll('tr')[rowIndex]
+          .replaceWith(tr);
+      } else {
+        tbody.appendChild(tr);
+      }
+      
+      return td;
+
+    });
+  
+    const actionTD = document.createElement('td');
+    const editButton = document.createElement('button');
+    const moveButton = document.createElement('button');
+    const deleteButton = document.createElement('button');
+    
+    actionTD.appendChild(editButton);
+    actionTD.appendChild( document.createElement('br') );
+    actionTD.appendChild( document.createElement('br') );
+    actionTD.appendChild(moveButton);
+    actionTD.appendChild( document.createElement('br') );
+    actionTD.appendChild( document.createElement('br') );
+    actionTD.appendChild(deleteButton);
+    tr.appendChild(actionTD);
+    
+    editButton.textContent = 'Edit';
+    editButton.addEventListener('click', evt =>
+      editForms(tr, id)
+    );
+    
+    moveButton.textContent = 'Move';
+    moveButton.addEventListener('click', evt => {
+      const to = prompt('Move this record to what ID?');
+      const row = $data[id];
+      save($data
+        .toSpliced(id, 1)
+        .toSpliced(to-1, 0, row)
+      );
+      
+      return evt;
+    });
+    
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', evt => {
+      if ( confirm('ต้องการลบข้อมูลบรรทัดนี้?') ) {
+        tr.parentNode.removeChild(tr);
+        save( $data.toSpliced(id, 1) );
+      }
+      return evt;
+    });
+
+  });
+  
+  if (!rowIndex) tbody.appendChild( addForms(data.length) );
+  
+  return tbody;
+  
+}
+
+
+function addForms(id) {
   const tr = document.createElement('tr');
   tr.id = 'add-row';
   tr.innerHTML = `
+    <td>${id+1}</td>
     <td class="add-cell" data-type="text" contenteditable></td>
     <td class="add-cell" data-type="text" contenteditable></td>
     <td class="add-cell" data-type="text" contenteditable></td>
@@ -132,7 +156,6 @@ function renderForms() {
     <td class="add-cell" data-type="array" contenteditable></td>
     <td class="add-cell" data-type="number" contenteditable></td>
     <td class="add-cell" data-type="nonalphabet" contenteditable></td>
-    <td class="add-cell" data-type="nonalphabet" contenteditable></td>
     <td data-type="action"><button id="data-add">Add</button></td>
   `;
   return tr;
@@ -141,27 +164,28 @@ function renderForms() {
 
 function editForms(oldTR, index) {
   
-  const arrData = $data[index][8];
-  const arrHTML = (arrData.length)
+  const arrData = $data[index]['ผู้อภิปราย'];
+  const arrHTML = arrData.length
     ? '<ul><li>' + arrData.join('</li><li>') + '</li></ul>'
     : '';
 
   const newTR = document.createElement('tr');
   newTR.id = 'edit-row';
   newTR.dataset.index = index;
+
   newTR.innerHTML = `
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][0]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][1]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][2]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][3]}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index][4]}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index][5]}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index][6]}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index][7]}</td>
+    <td>${index+1}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['หมวด']}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['ส่วน']}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['มาตรา']}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['ร่างมาตรา']}</td>
+    <td class="edit-cell" data-type="html" contenteditable>${$data[index]['ร่างบทบัญญัติ']}</td>
+    <td class="edit-cell" data-type="html" contenteditable>${$data[index]['ประเด็นการพิจารณา']}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['มติที่ประชุม']}</td>
+    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['หมายเหตุ']}</td>
     <td class="edit-cell" data-type="array" contenteditable>${arrHTML}</td>
-    <td class="edit-cell" data-type="number" contenteditable>${$data[index][9]}</td>
-    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index][10]}</td>
-    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index][11]}</td>
+    <td class="edit-cell" data-type="number" contenteditable>${$data[index]['ประชุมครั้งที่']}</td>
+    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index]['หน้า']}</td>
     <td data-type="action">
       <button class="data-save">Save</button>
       <br /><br />
@@ -189,8 +213,8 @@ function formsInit(tr) {
     addBtn.addEventListener('click', addHandler);
   }
 
-  var textProcessing;
-  const initCells = (tr)
+  let textProcessing;
+  const initCells = tr
     ? tr.querySelectorAll('.edit-cell')
     : document.querySelectorAll('.add-cell');
     
@@ -238,9 +262,16 @@ function formsInit(tr) {
       };
     }
     
-    ['focus', 'blur'].forEach(
-      evt => cell.addEventListener(evt, textProcessing)
+    cell.addEventListener('focus', evt => {
+      document.execCommand('selectAll', false, null);
+      document.getSelection().collapseToEnd();
+      return evt;
+    });
+    
+    ['focus', 'blur'].forEach(evt =>
+      cell.addEventListener(evt, textProcessing)
     );
+
     return cell;
     
   });
@@ -255,11 +286,15 @@ function addHandler(evt) {
   const addCells = Array.from(
     document.querySelectorAll('.add-cell')
   );
-  const newData = addCells.map(mappingData);
-  $data.push(newData);
-  save($data);
+  const addedData = addCells
+    .map(mappingData)
+    .reduce((obj, data, index) => {
+      obj[$keys[index]] = data;
+      return obj;
+    }, {});
+  save( $data.concat(addedData) );
   addCells[0].focus();
-  return newData;
+  return addedData;
 }
 
 
@@ -269,18 +304,30 @@ function editHandler(evt) {
   const editCells = Array.from(
     tr.querySelectorAll('.edit-cell')
   );
-  const editData = editCells.map(mappingData);
-  $data[index] = editData;
-  save($data);
-  return editData;
+  const editedData = editCells
+    .map(mappingData)
+    .reduce((obj, data, index) => {
+      obj[$keys[index]] = data;
+      return obj;
+    }, {});
+  save( $data.toSpliced(index, 1, editedData) );
+  return editedData;
 }
 
 
 function cancelHandler(evt) {
   const oldTR = evt.target.parentNode.parentNode;
   const index = oldTR.dataset.index;
-  const newTR = renderRows([$data[index]], { position: index });
+  renderTBody(index);
   return evt;
+}
+
+
+function save(dataArr) {
+  $data = dataArr;
+  localStorage.setItem('c60-cms', JSON.stringify(dataArr));
+  render();
+  return dataArr;
 }
 
 
@@ -383,18 +430,18 @@ function fixChars(elem) {
 
 
 function upload(evt) {
-  const files = (evt.target)
+  const files = evt.target
     ? evt.target.files
     : evt.files;
   if (files.length) {
     const reader = new FileReader();
     reader.addEventListener('load', evt => {
       const result = evt.target.result;
-      $data = JSON.parse(result);
+      $data = getData(result);
       save($data);
       return evt;
     });
-  reader.readAsText(files[0]);
+    reader.readAsText(files[0]);
   }
   return evt;
 }
@@ -408,22 +455,6 @@ function download(evt) {
   a.click();
   URL.revokeObjectURL(a.href);
   return evt;
-}
-
-
-function save(dataArr) {
-  localStorage.setItem('c60-cms', JSON.stringify(dataArr));
-  render();
-  return dataArr;
-}
-
-
-function render() {        
-  const dataSection = document.getElementById('data-section');
-  dataSection.innerHTML = '';
-  dataSection.appendChild( renderTable($data, dataSection) ) ;
-  formsInit();
-  return dataSection;
 }
 
 
