@@ -261,8 +261,9 @@ function formsInit(tr) {
     }
     
     cell.addEventListener('focus', evt => {
-      document.execCommand('selectAll', false, null);
-      document.getSelection().collapseToEnd();
+      evt.target.focus();
+      // document.execCommand('selectAll', false, null);
+      // document.getSelection().collapseToEnd();
       return evt;
     });
     
