@@ -180,7 +180,7 @@ function editForms(oldTR, index) {
     <td class="edit-cell" data-type="text" contenteditable>${$data[index]['ร่างมาตรา']}</td>
     <td class="edit-cell" data-type="html" contenteditable>${$data[index]['ร่างบทบัญญัติ']}</td>
     <td class="edit-cell" data-type="html" contenteditable>${$data[index]['ประเด็นการพิจารณา']}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['มติที่ประชุม']}</td>
+    <td class="edit-cell" data-type="html" contenteditable>${$data[index]['มติที่ประชุม']}</td>
     <td class="edit-cell" data-type="text" contenteditable>${$data[index]['หมายเหตุ']}</td>
     <td class="edit-cell" data-type="array" contenteditable>${arrHTML}</td>
     <td class="edit-cell" data-type="number" contenteditable>${$data[index]['ประชุมครั้งที่']}</td>
