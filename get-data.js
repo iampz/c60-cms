@@ -1,7 +1,7 @@
 function getData(dataText) {
   
   let data;
-  const dataJSON = dataText || localStorage.getItem('c60-cms');
+  const dataJSON = dataText || localStorage.getItem('c60-cms') || '{}';
   
   // Fix corrupted data.
   try {
