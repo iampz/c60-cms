@@ -275,7 +275,7 @@ function formsInit(tr) {
     
   });
   
-  initCells[0].focus();
+  // initCells[0].focus();
   return initCells;
   
 }
