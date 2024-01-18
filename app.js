@@ -1,16 +1,23 @@
 let $data = getData();
-
 const $keys = [
-  'หมวด', 'ส่วน', 'มาตรา', 'ร่างมาตรา',
-  'ร่างบทบัญญัติ', 'ประเด็นการพิจารณา', 'มติที่ประชุม',
-  'หมายเหตุ', 'ผู้อภิปราย', 'ประชุมครั้งที่', 'หน้า'
+    [ 'หมวด', 'text' ]
+  , [ 'ส่วน', 'text' ]
+  , [ 'มาตรา', 'text' ]
+  , [ 'ร่างมาตรา', 'text' ]
+  , [ 'ร่างบทบัญญัติ', 'html' ]
+  , [ 'ประเด็นการพิจารณา', 'html' ]
+  , [ 'มติที่ประชุม', 'html' ]
+  , [ 'หมายเหตุ', 'text' ]
+  , [ 'ผู้อภิปราย', 'array' ]
+  , [ 'ประชุมครั้งที่', 'number' ]
+  , [ 'หน้า', 'nonalphabet' ]
 ];
 
 
 function render() {        
   const dataSection = document.getElementById('data-section');
   dataSection.innerHTML = '';
-  dataSection.appendChild( renderTable($data, dataSection) ) ;
+  dataSection.append( renderTable($data, dataSection) ) ;
   formsInit();
   return dataSection;
 }
@@ -20,8 +27,7 @@ function renderTable() {
   const table = document.createElement('table');
   table.id = 'data-table';
   table.border = 1;
-  table.appendChild(renderTHead());
-  table.appendChild(renderTBody());
+  table.append(renderTHead(), renderTBody());
   return table;
 }
 
@@ -30,21 +36,21 @@ function renderTHead() {
   
   const thead = document.createElement('thead');
   const tr = document.createElement('tr');
-  thead.appendChild(tr);
-
-  const idTH = document.createElement('th');
-  idTH.textContent = 'ID';
-  tr.appendChild(idTH);
+  
+  thead
+    .appendChild(tr)
+    .appendChild(document.createElement('th'))
+    .append('ID');
   
   $keys.forEach(key => {
-    const th = document.createElement('th');
-    th.textContent = key;
-    tr.appendChild(th);
+    tr
+      .appendChild(document.createElement('th'))
+      .append(key[0]);
   });
   
-  const actionTH = document.createElement('th');
-  actionTH.textContent = 'Action';
-  tr.appendChild(actionTH);
+  tr
+    .appendChild(document.createElement('th'))
+    .append('Action');;
   
   return thead;
   
@@ -65,26 +71,26 @@ function renderTBody(rowIndex) {
 
     const id = rowIndex ? rowIndex : index;
     const tr = document.createElement('tr');
-    const idTD = document.createElement('td');
-    idTD.textContent = Number(id) + 1;
     tr.dataset.index = index;
-    tr.appendChild(idTD);
+    tr
+      .appendChild(document.createElement('td'))
+      .append(Number(id) + 1);
   
     $keys.forEach(key => {
     
       const td = document.createElement('td');
-      const tdData = row[key];
+      const tdData = row[key[0]];
       td.innerHTML = (Array.isArray(tdData) && tdData.length)
-      ? '<ul><li>' + tdData.join('</li><li>') + '</li></ul>'
-      : tdData;
-      tr.appendChild(td);
+        ? '<ul><li>' + tdData.join('</li><li>') + '</li></ul>'
+        : tdData;
+      tr.append(td);
       
       if (rowIndex) {
         tbody
           .querySelectorAll('tr')[rowIndex]
           .replaceWith(tr);
       } else {
-        tbody.appendChild(tr);
+        tbody.append(tr);
       }
       
       return td;
@@ -96,12 +102,15 @@ function renderTBody(rowIndex) {
     const moveButton = document.createElement('button');
     const deleteButton = document.createElement('button');
     
-    actionTD.appendChild(editButton);
-    actionTD.appendChild( document.createElement('br') );
-    actionTD.appendChild(moveButton);
-    actionTD.appendChild( document.createElement('br') );
-    actionTD.appendChild(deleteButton);
-    tr.appendChild(actionTD);
+    tr
+      .appendChild(actionTD)
+      .append(
+          editButton
+        , document.createElement('br')
+        , moveButton
+        , document.createElement('br')
+        , deleteButton
+      );
     
     editButton.textContent = 'Edit';
     editButton.addEventListener('click', evt =>
@@ -132,7 +141,7 @@ function renderTBody(rowIndex) {
 
   });
   
-  if (!rowIndex) tbody.appendChild( addForms(data.length) );
+  if (!rowIndex) tbody.append( addForms(data.length) );
   
   return tbody;
   
@@ -141,20 +150,13 @@ function renderTBody(rowIndex) {
 
 function addForms(id) {
   const tr = document.createElement('tr');
+  const formsTD = $keys.map(key =>
+    `<td class="add-cell" data-type="${key[1]}" contenteditable></td>`
+  ).join('\n');
   tr.id = 'add-row';
   tr.innerHTML = `
     <td>${id+1}</td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="html" contenteditable></td>
-    <td class="add-cell" data-type="html" contenteditable></td>
-    <td class="add-cell" data-type="html" contenteditable></td>
-    <td class="add-cell" data-type="text" contenteditable></td>
-    <td class="add-cell" data-type="array" contenteditable></td>
-    <td class="add-cell" data-type="number" contenteditable></td>
-    <td class="add-cell" data-type="nonalphabet" contenteditable></td>
+    ${formsTD}
     <td data-type="action"><button id="data-add">Add</button></td>
   `;
   return tr;
@@ -169,22 +171,18 @@ function editForms(oldTR, index) {
     : '';
 
   const newTR = document.createElement('tr');
+  const formsTD = $keys.map(key => {
+    const editData = (key[1] === 'array')
+      ? arrHTML
+      : $data[index][key[0]];
+    return `<td class="edit-cell" data-type="${key[1]}" contenteditable>${editData}</td>`
+  }).join('\n');
+  
   newTR.id = 'edit-row';
   newTR.dataset.index = index;
-
   newTR.innerHTML = `
     <td>${Number(index)+1}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['หมวด']}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['ส่วน']}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['มาตรา']}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['ร่างมาตรา']}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index]['ร่างบทบัญญัติ']}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index]['ประเด็นการพิจารณา']}</td>
-    <td class="edit-cell" data-type="html" contenteditable>${$data[index]['มติที่ประชุม']}</td>
-    <td class="edit-cell" data-type="text" contenteditable>${$data[index]['หมายเหตุ']}</td>
-    <td class="edit-cell" data-type="array" contenteditable>${arrHTML}</td>
-    <td class="edit-cell" data-type="number" contenteditable>${$data[index]['ประชุมครั้งที่']}</td>
-    <td class="edit-cell" data-type="nonalphabet" contenteditable>${$data[index]['หน้า']}</td>
+    ${formsTD}
     <td data-type="action">
       <button class="data-save">Save</button><br />
       <button class="data-cancel">Cancel</button>
@@ -228,9 +226,9 @@ function formsInit(tr) {
           if (evt.keyCode === 89) { // ctrl + y
             document.execCommand('strikeThrough', { isHeader: true });
           } else if (evt.keyCode === 86) { // ctrl + v
-            wrapText(cell);
+            cleanData(cell);
             simplifyCSS(cell);
-            fixChars(cell);
+            cell.innerHTML = fixChars(cell.innerHTML);
           }
         }
         return evt;
@@ -239,33 +237,49 @@ function formsInit(tr) {
       
     } else if (cell.dataset.type === 'text') {
       textProcessing = evt =>
-        cell.innerText = cell.textContent;
+        cell.textContent = fixChars(
+          cell.textContent.trim()
+        );
       
     } else if (cell.dataset.type === 'number') {
       textProcessing = evt =>
-        cell.innerText = cell.textContent.replace(/[^0-9]/g, '');
+        cell.textContent = fixChars(
+          cell
+            .textContent
+            .replace(/[^0-9]/g, '')
+            .trim()
+        );
       
     } else if (cell.dataset.type === 'nonalphabet') {
       textProcessing = evt =>
-        cell.innerText = cell.textContent.replace(/[a-zA-Zก-๙]/g, '');
+        cell.textContent = fixChars(
+          cell
+            .textContent
+            .replace(/[a-zA-Zก-๙]/g, '')
+            .trim()
+        );
       
     } else if (cell.dataset.type === 'array') {
-      textProcessing = evt => {
-        if (!cell.textContent) cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
+    textProcessing = evt => {
+
+        if (!cell.textContent)
+          cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
+        else if (cell.innerHTML.match(/\<div\>/))
+          cell.innerHTML = `<ul><li>${cell.textContent}</li></ul>`;
+        
         cell.innerHTML = cell.innerHTML
           .replace(/\<li\>\<li\>/g, '<li>')
           .replace(/\<\/li\>\<\/li\>/g, '</li>');
-        cell.querySelectorAll('li').forEach(li => li.innerText = li.textContent);
+          
+        cell.querySelectorAll('li').forEach(
+          li => li.textContent = fixChars(
+            li.textContent.trim()
+          )
+        );
         return evt;
+
       };
     }
-    
-    cell.addEventListener('focus', evt => {
-      evt.target.focus();
-      // document.execCommand('selectAll', false, null);
-      // document.getSelection().collapseToEnd();
-      return evt;
-    });
     
     ['focus', 'blur'].forEach(evt =>
       cell.addEventListener(evt, textProcessing)
@@ -275,7 +289,6 @@ function formsInit(tr) {
     
   });
   
-  // initCells[0].focus();
   return initCells;
   
 }
@@ -288,7 +301,7 @@ function addHandler(evt) {
   const addedData = addCells
     .map(mappingData)
     .reduce((obj, data, index) => {
-      obj[$keys[index]] = data;
+      obj[$keys[index][0]] = data;
       return obj;
     }, {});
   save( $data.concat(addedData) );
@@ -306,7 +319,7 @@ function editHandler(evt) {
   const editedData = editCells
     .map(mappingData)
     .reduce((obj, data, index) => {
-      obj[$keys[index]] = data;
+      obj[$keys[index][0]] = data;
       return obj;
     }, {});
   save( $data.toSpliced(index, 1, editedData) );
@@ -353,16 +366,25 @@ function mappingData(cell) {
 
 
 // wrap text node in span
-function wrapText(elem) {
+function cleanData(elem) {
   elem.childNodes.forEach(node => {
     if (node.nodeType === 3) {
-      const text = node.data.replace(/\s+/g, ' ');
-      if (text !== ' ' && node.parentNode.nodeName.match(/^p$/i)) {
+    
+      const parentElem = node.parentNode;
+      if (parentElem.nodeName.match(/^h[1-6]{1}$/i)) {
+        const p = document.createElement('p');
+        p.innerHTML = parentElem.innerHTML;
+        parentElem.replaceWith(p);
+      }
+
+      const txt = node.data.replace(/\s+/g, ' ').trim();
+      if (parentElem.nodeName.match(/^p$/i)) {
         const span = document.createElement('span');
-        span.innerText = text;
+        span.textContent = txt;
         node.replaceWith(span);
-      } else node.replaceWith(text);
-    } else if (node.childNodes) wrapText(node);
+      } else node.replaceWith(txt);
+      
+    } else if (node.childNodes) cleanData(node);
     return node;
   });
   return elem;
@@ -402,8 +424,8 @@ function simplifyCSS(elem) {
 
 
 // cleanup junk characters from pdf and swap thai numeral to arabic numeral
-function fixChars(elem) {
-  elem.innerHTML = elem.innerHTML
+function fixChars(str) {
+  return str
     .replace(/๐/g, '0')
     .replace(/๑/g, '1')
     .replace(/๒/g, '2')
@@ -423,8 +445,8 @@ function fixChars(elem) {
     .replace(//g, 'ื')
     .replace(//g, 'ั')
     .replace(/ํา/g, 'ำ')
+    .replace(/่ื/g, 'ื่')
     .replace(/่ี/g, 'ี่');
-  return elem;
 }
 
 
