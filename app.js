@@ -175,11 +175,12 @@ function editForms(oldTR, index) {
     const editData = (key[1] === 'array')
       ? arrHTML
       : $data[index][key[0]];
-    return
-      `<td class="edit-cell" data-type="${key[1]}" contenteditable>${editData}</td>`;
-  }).join('\n');
+    return `
+      <td class="edit-cell" data-type="${key[1]}" contenteditable>${editData}</td>
+    `;
+  }).join('');
   
-  newTR.id = 'edit-row';
+  newTR.className = 'edit-row';
   newTR.dataset.index = index;
   newTR.innerHTML = `
     <td>${Number(index)+1}</td>
