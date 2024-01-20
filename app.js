@@ -223,9 +223,9 @@ function formsInit(tr) {
         if ( cell.childNodes.length === 1
           && cell.childNodes[0].nodeType === 3)
           cell.innerHTML = `<p>${cell.innerHTML}</p>`;
-        cell.innerHTML = fixChars(cell.innerHTML);
         cleanData(cell);
         simplifyCSS(cell);
+        cell.innerHTML = fixChars(cell.innerHTML);
         if (!cell.textContent) cell.innerHTML = '<p>&nbsp;</p>';
         return evt
       }
