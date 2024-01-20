@@ -285,10 +285,8 @@ function formsInit(tr) {
       };
     }
     
-    ['focus', 'blur'].forEach(evt =>
-      cell.addEventListener(evt, textProcessing)
-    );
-
+    cell.addEventListener('blur', textProcessing)
+    
     return cell;
     
   });
