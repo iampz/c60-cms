@@ -175,7 +175,8 @@ function editForms(oldTR, index) {
     const editData = (key[1] === 'array')
       ? arrHTML
       : $data[index][key[0]];
-    return `<td class="edit-cell" data-type="${key[1]}" contenteditable>${editData}</td>`
+    return
+      `<td class="edit-cell" data-type="${key[1]}" contenteditable>${editData}</td>`;
   }).join('\n');
   
   newTR.id = 'edit-row';
@@ -217,23 +218,30 @@ function formsInit(tr) {
   initCells.forEach(cell => {
   
     if (cell.dataset.type === 'html') {
+    
       textProcessing = evt => {
+        cleanData(cell);
+        simplifyCSS(cell);
+        cell.innerHTML = fixChars(cell.innerHTML);
         if (!cell.textContent) cell.innerHTML = '<p>&nbsp;</p>';
         return evt
       };
-      cell.addEventListener('keyup', evt => {
-        if (cell.matches(':focus') && evt.ctrlKey) {
-          if (evt.keyCode === 89) { // ctrl + y
-            document.execCommand('strikeThrough', { isHeader: true });
-          } else if (evt.keyCode === 86) { // ctrl + v
-            cleanData(cell);
-            simplifyCSS(cell);
-            cell.innerHTML = fixChars(cell.innerHTML);
-          }
-        }
-        return evt;
+      
+      cell.addEventListener('paste', evt => {
+        setTimeout(() => {
+          cleanData(cell);
+          simplifyCSS(cell);
+          cell.innerHTML = fixChars(cell.innerHTML);
+          return cell;
+        }, 1);
       });
 
+      // Add strikethrough shortcut with ctrl+y
+      cell.addEventListener('keyup', evt => {
+        if (cell.matches(':focus') && evt.ctrlKey && evt.keyCode === 89)
+          document.execCommand('strikeThrough');
+        return evt;
+      });
       
     } else if (cell.dataset.type === 'text') {
       textProcessing = evt =>
@@ -368,23 +376,29 @@ function mappingData(cell) {
 // wrap text node in span
 function cleanData(elem) {
   elem.childNodes.forEach(node => {
+    
+    // only clean text nodes
     if (node.nodeType === 3) {
     
       const parentElem = node.parentNode;
+      const txt = node.data.replace(/\s+/g, ' ').trim();
+
       if (parentElem.nodeName.match(/^h[1-6]{1}$/i)) {
         const p = document.createElement('p');
         p.innerHTML = parentElem.innerHTML;
         parentElem.replaceWith(p);
       }
 
-      const txt = node.data.replace(/\s+/g, ' ').trim();
       if (parentElem.nodeName.match(/^p$/i)) {
         const span = document.createElement('span');
         span.textContent = txt;
         node.replaceWith(span);
       } else node.replaceWith(txt);
       
-    } else if (node.childNodes) cleanData(node);
+    } else if (node.childNodes) {
+      if (node.innerHTML.trim()) cleanData(node);
+      else node.remove();
+    }
     return node;
   });
   return elem;
@@ -436,20 +450,33 @@ function fixChars(str) {
     .replace(/๗/g, '7')
     .replace(/๘/g, '8')
     .replace(/๙/g, '9')
-    .replace(/[,]/g, '่')
-    .replace(/[,]/g, '้')
-    .replace(//g, '็')
-    .replace(//g, '์')
-    .replace(//g, 'ิ')
-    .replace(//g, 'ี')
-    .replace(//g, 'ื')
-    .replace(//g, 'ั')
+    .replace(/[,]+/g, '่')
+    .replace(/[,,]+/g, '้')
+    .replace(/+/g, '็')
+    .replace(/+/g, '์')
+    .replace(/+/g, 'ิ')
+    .replace(/+/g, 'ี')
+    .replace(/+/g, 'ื')
+    .replace(/+/g, 'ั')
     .replace(/ํา/g, 'ำ')
     .replace(/่ื/g, 'ื่')
-    .replace(/่ี/g, 'ี่');
+    .replace(/่ี/g, 'ี่')
+    .replace(/[่]{2,}/g, '่')
+    .replace(/[้]{2,}/g, '้')
+    .replace(/[๊]{2,}/g, '๊')
+    .replace(/[๋]{2,}/g, '๋')
+    .replace(/[็]{2,}/g, '็')
+    .replace(/[ั]{2,}/g, 'ั')
+    .replace(/[์]{2,}/g, '์')
+    .replace(/[ิ]{2,}/g, 'ิ')
+    .replace(/[ี]{2,}/g, 'ี')
+    .replace(/[ึ]{2,}/g, 'ึ')
+    .replace(/[ื]{2,}/g, 'ื')
+    .replace(/[ุ]{2,}/g, 'ุ')
+    .replace(/[ู]{2,}/g, 'ู');
 }
 
-
+ 
 function upload(evt) {
   const files = evt.target
     ? evt.target.files
@@ -458,8 +485,13 @@ function upload(evt) {
     const reader = new FileReader();
     reader.addEventListener('load', evt => {
       const result = evt.target.result;
-      $data = getData(result);
-      save($data);
+      try {
+        const json = JSON.parse(result);
+        $data = json;
+        save($data);
+      } catch (e) {
+        alert('Uploaded file is not in JSON format.');
+      }
       return evt;
     });
     reader.readAsText(files[0]);
