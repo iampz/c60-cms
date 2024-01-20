@@ -219,22 +219,18 @@ function formsInit(tr) {
   
     if (cell.dataset.type === 'html') {
     
-      textProcessing = evt => {
+      const pasteProcessing = textProcessing = evt => {
+        if ( cell.childNodes.length === 1
+          && cell.childNodes[0].nodeType === 3)
+          cell.innerHTML = `<p>${cell.innerHTML}</p>`;
+        cell.innerHTML = fixChars(cell.innerHTML);
         cleanData(cell);
         simplifyCSS(cell);
-        cell.innerHTML = fixChars(cell.innerHTML);
         if (!cell.textContent) cell.innerHTML = '<p>&nbsp;</p>';
         return evt
-      };
+      }
       
-      cell.addEventListener('paste', evt => {
-        setTimeout(() => {
-          cleanData(cell);
-          simplifyCSS(cell);
-          cell.innerHTML = fixChars(cell.innerHTML);
-          return cell;
-        }, 1);
-      });
+      cell.addEventListener('paste', evt => setTimeout(pasteProcessing, 1));
 
       // Add strikethrough shortcut with ctrl+y
       cell.addEventListener('keyup', evt => {
@@ -373,70 +369,6 @@ function mappingData(cell) {
 }
 
 
-// wrap text node in span
-function cleanData(elem) {
-  elem.childNodes.forEach(node => {
-    
-    // only clean text nodes
-    if (node.nodeType === 3) {
-    
-      const parentElem = node.parentNode;
-      const txt = node.data.replace(/\s+/g, ' ').trim();
-
-      if (parentElem.nodeName.match(/^h[1-6]{1}$/i)) {
-        const p = document.createElement('p');
-        p.innerHTML = parentElem.innerHTML;
-        parentElem.replaceWith(p);
-      }
-
-      if (parentElem.nodeName.match(/^p$/i)) {
-        const span = document.createElement('span');
-        span.textContent = txt;
-        node.replaceWith(span);
-      } else node.replaceWith(txt);
-      
-    } else if (node.childNodes) {
-      if (node.innerHTML.trim()) cleanData(node);
-      else node.remove();
-    }
-    return node;
-  });
-  return elem;
-}
-
-
-// remove class and css, except underline and strikethrough    
-function simplifyCSS(elem) {
-  elem.childNodes.forEach(node => {
-    if (node.nodeName.match(/^span$/i)) {
-      if (
-        getComputedStyle(node).fontFamily !== '"TH SarabunPSK", sans-serif'
-        && getComputedStyle(node).fontFamily !== 'Sarabun, Arial, sans-serif'
-        && getComputedStyle(node).fontFamily !== 'Arial'
-      ) {
-        const newNode = document.createElement('strike');
-        newNode.innerHTML = node.innerHTML;
-        node.replaceWith(newNode);
-      } else if (getComputedStyle(node).textDecorationLine === 'underline') {
-        const newNode = document.createElement('u');
-        newNode.innerHTML = node.innerHTML;
-        node.replaceWith(newNode);
-      } else {
-        const newNode = document.createTextNode(node.textContent);
-        node.replaceWith(newNode);
-      }
-    }
-    if (node.childNodes) simplifyCSS(node);
-    if (node.tagName) {
-      node.removeAttribute('class');
-      node.removeAttribute('style');
-    }
-    return node;
-  });
-  return elem;
-}
-
-
 // cleanup junk characters from pdf and swap thai numeral to arabic numeral
 function fixChars(str) {
   return str
@@ -474,6 +406,75 @@ function fixChars(str) {
     .replace(/[ื]{2,}/g, 'ื')
     .replace(/[ุ]{2,}/g, 'ุ')
     .replace(/[ู]{2,}/g, 'ู');
+}
+
+
+// wrap text node in span
+function cleanData(elem) {
+
+  elem.childNodes.forEach(node => {
+    
+    // only clean text nodes
+    if (node.nodeType === 3) {
+    
+      const parentElem = node.parentNode;
+      const txt = node.data.replace(/\s+/g, ' ');
+
+      if (parentElem.nodeName.match(/^h[1-6]{1}$/i)) {
+        const p = document.createElement('p');
+        p.innerHTML = parentElem.innerHTML;
+        parentElem.replaceWith(p);
+      }
+
+      if (parentElem.nodeName.match(/^p$/i)) {
+        const span = document.createElement('span');
+        span.textContent = txt;
+        node.replaceWith(span);
+      } else node.replaceWith(txt);
+      
+    } else if (node.childNodes) {
+      if (node.innerHTML.trim()) cleanData(node);
+      else node.remove();
+    }
+    
+    return node;
+    
+  });
+  
+  return elem;
+  
+}
+
+
+// remove class and css, except underline and strikethrough    
+function simplifyCSS(elem) {
+  elem.childNodes.forEach(node => {
+    if (node.nodeName.match(/^span$/i)) {
+      if (
+        getComputedStyle(node).fontFamily !== '"TH SarabunPSK", sans-serif'
+        && getComputedStyle(node).fontFamily !== 'Sarabun, Arial, sans-serif'
+        && getComputedStyle(node).fontFamily !== 'Arial'
+      ) {
+        const newNode = document.createElement('strike');
+        newNode.innerHTML = node.innerHTML;
+        node.replaceWith(newNode);
+      } else if (getComputedStyle(node).textDecorationLine === 'underline') {
+        const newNode = document.createElement('u');
+        newNode.innerHTML = node.innerHTML;
+        node.replaceWith(newNode);
+      } else {
+        const newNode = document.createTextNode(node.textContent);
+        node.replaceWith(newNode);
+      }
+    }
+    if (node.childNodes) simplifyCSS(node);
+    if (node.tagName) {
+      node.removeAttribute('class');
+      node.removeAttribute('style');
+    }
+    return node;
+  });
+  return elem;
 }
 
  
