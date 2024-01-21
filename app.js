@@ -14,12 +14,50 @@ const $keys = [
 ];
 
 
-function render() {        
-  const dataSection = document.getElementById('data-section');
-  dataSection.innerHTML = '';
-  dataSection.append( renderTable($data, dataSection) ) ;
-  formsInit();
-  return dataSection;
+function render(options={ id: -1, to: -1, remove: -1 }) {
+  if (options.id + 1) {
+    const elem = document
+      .querySelector(`[data-index="${options.id}"]`);
+    if (options.to + 1) {
+      const dest = (options.to > options.id)
+        ? document.querySelector(`[data-index="${options.to + 1}"]`)
+        : document.querySelector(`[data-index="${options.to}"]`);
+      elem.remove();
+      dest.before(elem);
+      renderID();
+      return `ID: ${options.id + 1} moved to ID: ${options.to + 1}.`;
+    } else {
+      renderTBody(options.id);
+      return `ID: ${options.id + 1} was added/edited.`;
+    }
+  } else {
+    if (options.remove + 1) {
+      const elem = document
+        .querySelector(`[data-index="${options.remove}"]`);
+      elem.remove();
+      renderID();
+      return `ID: ${options.remove + 1} was removed.`;
+    } else {
+      const dataSection = document.getElementById('data-section');
+      dataSection.innerHTML = '';
+      dataSection.append( renderTable($data, dataSection) ) ;
+      formsInit();
+      return `Whole table re-rendered.`;
+    }
+  }
+}
+
+
+function renderID() {
+  const tdArr = Array.from(
+    document.querySelectorAll('tr td:first-child')
+  );
+  tdArr.forEach((elem, index) => {
+    elem.parentNode.dataset.index = index;
+    elem.textContent = index + 1;
+    return elem;
+  });
+  return tdArr;
 }
 
 
@@ -71,7 +109,7 @@ function renderTBody(rowIndex) {
 
     const id = rowIndex ? rowIndex : index;
     const tr = document.createElement('tr');
-    tr.dataset.index = index;
+    tr.dataset.index = id;
     tr
       .appendChild(document.createElement('td'))
       .append(Number(id) + 1);
@@ -113,19 +151,27 @@ function renderTBody(rowIndex) {
       );
     
     editButton.textContent = 'Edit';
-    editButton.addEventListener('click', evt =>
-      editForms(tr, id)
-    );
+    editButton.addEventListener('click', evt => {
+      const rowID = evt.target
+        .parentNode.parentNode
+        .dataset.index;
+      editForms(tr, rowID);
+      return evt;
+    });
     
     moveButton.textContent = 'Move';
     moveButton.addEventListener('click', evt => {
-      const to = prompt('Move this record to what ID?');
+      const to = prompt('Move this record to what ID?') - 1;
       if (to) {
-        const row = $data[id];
+        const rowID = evt.target
+          .parentNode.parentNode
+          .dataset.index;
+        const row = $data[rowID];
         save($data
-          .toSpliced(id, 1)
-          .toSpliced(to-1, 0, row)
+          .toSpliced(rowID, 1)
+          .toSpliced(to, 0, row)
         );
+        render({ rowID, to });
       }      
       return evt;
     });
@@ -133,29 +179,33 @@ function renderTBody(rowIndex) {
     deleteButton.textContent = 'Delete';
     deleteButton.addEventListener('click', evt => {
       if ( confirm('ต้องการลบข้อมูลบรรทัดนี้?') ) {
-        tr.parentNode.removeChild(tr);
-        save( $data.toSpliced(id, 1) );
+        const rowID = evt.target
+          .parentNode.parentNode
+          .dataset.index;
+        save( $data.toSpliced(rowID, 1) );
+        render({ remove: rowID});
       }
       return evt;
     });
 
   });
   
-  if (!rowIndex) tbody.append( addForms(data.length) );
+  const addRow = document.getElementById('add-row');
+  if (!addRow) tbody.append( addForms() );
   
   return tbody;
   
 }
 
 
-function addForms(id) {
+function addForms() {
   const tr = document.createElement('tr');
   const formsTD = $keys.map(key =>
     `<td class="add-cell" data-type="${key[1]}" contenteditable></td>`
   ).join('\n');
   tr.id = 'add-row';
   tr.innerHTML = `
-    <td>${id+1}</td>
+    <td>${$data.length + 1}</td>
     ${formsTD}
     <td data-type="action"><button id="data-add">Add</button></td>
   `;
@@ -308,6 +358,7 @@ function addHandler(evt) {
       return obj;
     }, {});
   save( $data.concat(addedData) );
+  render({ id: $data.length - 1 });
   addCells[0].focus();
   return addedData;
 }
@@ -315,7 +366,7 @@ function addHandler(evt) {
 
 function editHandler(evt) {
   const tr = evt.target.parentNode.parentNode;
-  const index = tr.dataset.index;
+  const id = tr.dataset.index;
   const editCells = Array.from(
     tr.querySelectorAll('.edit-cell')
   );
@@ -325,7 +376,8 @@ function editHandler(evt) {
       obj[$keys[index][0]] = data;
       return obj;
     }, {});
-  save( $data.toSpliced(index, 1, editedData) );
+  save( $data.toSpliced(id, 1, editedData) );
+  render({ id });
   return editedData;
 }
 
@@ -341,7 +393,6 @@ function cancelHandler(evt) {
 function save(dataArr) {
   $data = dataArr;
   localStorage.setItem('c60-cms', JSON.stringify(dataArr));
-  render();
   return dataArr;
 }
 
@@ -489,6 +540,7 @@ function upload(evt) {
         const json = JSON.parse(result);
         $data = json;
         save($data);
+        render();
       } catch (e) {
         alert('Uploaded file is not in JSON format.');
       }
@@ -522,6 +574,7 @@ function download(evt) {
       if ( confirm('ต้องการลบข้อมูลทั้งหมด?') ) {
         $data = [];
         save($data);
+        render();
       }
       return evt;
     });
