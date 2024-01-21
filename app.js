@@ -209,6 +209,9 @@ function addForms() {
     ${formsTD}
     <td data-type="action"><button id="data-add">Add</button></td>
   `;
+  tr
+    .querySelector('#data-add')
+    .addEventListener('click', addHandler);
   return tr;
 }
 
@@ -256,9 +259,6 @@ function formsInit(tr) {
     const cancelBtn = tr.querySelector('.data-cancel');
     saveBtn.addEventListener('click', editHandler);
     cancelBtn.addEventListener('click', cancelHandler);
-  } else {
-    const addBtn = document.getElementById('data-add');
-    addBtn.addEventListener('click', addHandler);
   }
 
   let textProcessing;
@@ -359,7 +359,7 @@ function addHandler(evt) {
     }, {});
   save( $data.concat(addedData) );
   render({ id: $data.length - 1 });
-  addCells[0].focus();
+  document.querySelector('.add-cell').focus();
   return addedData;
 }
 
