@@ -139,6 +139,9 @@ function renderTBody(rowIndex) {
     const editButton = document.createElement('button');
     const moveButton = document.createElement('button');
     const deleteButton = document.createElement('button');
+    editButton.className = 'data-edit';
+    moveButton.className = 'data-move';
+    deleteButton.className = 'data-delete';
     
     tr
       .appendChild(actionTD)
@@ -191,14 +194,14 @@ function renderTBody(rowIndex) {
   });
   
   const addRow = document.getElementById('add-row');
-  if (!addRow) tbody.append( addForms() );
+  if (!addRow) addForms(tbody);
   
   return tbody;
   
 }
 
 
-function addForms() {
+function addForms(tbody) {
   const tr = document.createElement('tr');
   const formsTD = $keys.map(key =>
     `<td class="add-cell" data-type="${key[1]}" contenteditable></td>`
@@ -212,7 +215,8 @@ function addForms() {
   tr
     .querySelector('#data-add')
     .addEventListener('click', addHandler);
-  return tr;
+  tbody.append(tr);
+  return formsInit(tr);
 }
 
 
@@ -245,16 +249,16 @@ function editForms(oldTR, index) {
   `;
   
   oldTR.replaceWith(newTR);
-  formsInit(newTR);
-  
-  return newTR;
+  return formsInit(newTR, 'edit');
   
 }
 
 
-function formsInit(tr) {
+function formsInit(tr, type='add') {
   
-  if (tr) {
+  const isEdit = (type === 'edit');
+  
+  if (isEdit) {
     const saveBtn = tr.querySelector('.data-save');
     const cancelBtn = tr.querySelector('.data-cancel');
     saveBtn.addEventListener('click', editHandler);
@@ -262,12 +266,12 @@ function formsInit(tr) {
   }
 
   let textProcessing;
-  const initCells = tr
+  const initCells = isEdit 
     ? tr.querySelectorAll('.edit-cell')
     : document.querySelectorAll('.add-cell');
     
   initCells.forEach(cell => {
-  
+    
     if (cell.dataset.type === 'html') {
     
       const pasteProcessing = textProcessing = evt => {
@@ -336,13 +340,14 @@ function formsInit(tr) {
       };
     }
     
+    cell.addEventListener('focus', textProcessing)
     cell.addEventListener('blur', textProcessing)
     
     return cell;
     
   });
   
-  return initCells;
+  return tr;
   
 }
 
@@ -615,6 +620,38 @@ function download(evt) {
       evt.stopPropagation();
       evt.preventDefault();
       upload(evt.dataTransfer);
+      return evt;
+    });
+    
+    // Re-validate all edited records
+    document.getElementById('rar').addEventListener('click', evt => {
+      evt.stopPropagation();
+      evt.preventDefault();
+      const blurEvt = new Event('Event');
+      blurEvt.initEvent('blur', true, true);
+      document
+        .querySelectorAll('.edit-cell')
+        .forEach(elem => elem.dispatchEvent(blurEvt));
+      return evt;
+    });
+
+    // Edit all records
+    document.getElementById('ear').addEventListener('click', evt => {
+      evt.stopPropagation();
+      evt.preventDefault();
+      document
+        .querySelectorAll('.data-edit')
+        .forEach(btn => btn.click());
+      return evt;
+    });
+    
+    // Save all records
+    document.getElementById('sar').addEventListener('click', evt => {
+      evt.stopPropagation();
+      evt.preventDefault();
+      document
+        .querySelectorAll('.data-save')
+        .forEach(btn => btn.click());
       return evt;
     });
     
