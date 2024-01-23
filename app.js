@@ -623,7 +623,7 @@ function download(evt) {
       return evt;
     });
     
-    // Re-validate all edited records
+    // re-validate all edited records
     document.getElementById('rar').addEventListener('click', evt => {
       evt.stopPropagation();
       evt.preventDefault();
@@ -635,7 +635,7 @@ function download(evt) {
       return evt;
     });
 
-    // Edit all records
+    // edit all records
     document.getElementById('ear').addEventListener('click', evt => {
       evt.stopPropagation();
       evt.preventDefault();
@@ -645,13 +645,26 @@ function download(evt) {
       return evt;
     });
     
-    // Save all records
+    // save all records
     document.getElementById('sar').addEventListener('click', evt => {
       evt.stopPropagation();
       evt.preventDefault();
       document
         .querySelectorAll('.data-save')
         .forEach(btn => btn.click());
+      return evt;
+    });
+    
+    // go to add
+    document.getElementById('gta').addEventListener('click', evt => {
+      evt.stopPropagation();
+      evt.preventDefault();
+      document
+        .getElementById('btt')
+        .scrollIntoView({ behavior: 'smooth', block: "end" });
+      setTimeout(() =>
+        document.querySelector('.add-cell').focus()
+      , 1000);
       return evt;
     });
     

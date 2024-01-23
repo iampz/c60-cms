@@ -74,7 +74,11 @@ aside {
   }
   #data-table br+button {
     margin-top: 7px;
-  }  
+  }
+  
+#gta {
+  margin-right: 15px;
+}
 
 #clipboard {
   position: absolute;
