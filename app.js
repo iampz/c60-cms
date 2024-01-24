@@ -330,7 +330,8 @@ function formsInit(tr, type='add') {
     } else if (cell.dataset.type === 'array') {
       textProcessing = evt => {
 
-        if (!cell.textContent)
+        console.log(!cell.textContent);
+        if (!cell.textContent.trim())
           cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
         else if (cell.innerHTML.match(/\<div\>/))
           cell.innerHTML = `<ul><li>${cell.textContent}</li></ul>`;
