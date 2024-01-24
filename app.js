@@ -233,7 +233,11 @@ function editForms(oldTR, index) {
       ? arrHTML
       : $data[index][key[0]];
     return `
-      <td class="edit-cell" data-type="${key[1]}" contenteditable>${editData}</td>
+      <td class="edit-cell"
+        data-type="${key[1]}"
+        data-ref="$data[${oldTR.dataset.index}]['${key[0]}']"
+        contenteditable>
+      ${editData}</td>
     `;
   }).join('');
   

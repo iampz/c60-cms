@@ -72,6 +72,10 @@ nav {
     margin: 0 0 0 1em;
     padding: 0;
   }
+  #data-table li+li {
+    margin-top: 10px;
+    padding: 0;
+  }
   #data-table br+button {
     margin-top: 7px;
   }
