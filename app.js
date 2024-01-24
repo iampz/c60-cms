@@ -330,7 +330,6 @@ function formsInit(tr, type='add') {
     } else if (cell.dataset.type === 'array') {
       textProcessing = evt => {
 
-        console.log(!cell.textContent);
         if (!cell.textContent.trim())
           cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
         else if (cell.innerHTML.match(/\<div\>/))
@@ -354,16 +353,19 @@ function formsInit(tr, type='add') {
     cell.addEventListener('blur', textProcessing)
     
     if (cell.className === 'edit-cell') {
+    
       const data = $data[tr.dataset.index][$keys[index][0]];
-      cell.addEventListener('keyup', evt => {
+      const editedCheck = evt => {
+      
         if (cell.dataset.type === 'html') {
           cell.classList.add('edited');
           if (!data && !cell.textContent.trim()) {
             cell.classList.remove('edited');
           }
-          if (cell.innerHTML === data) {
+          if (cell.innerHTML.trim() === data) {
             cell.classList.remove('edited');
           }
+          
         } else if (cell.dataset.type === 'array') {
           const cellArr = Array.from(
             cell.querySelectorAll('li')
@@ -373,14 +375,21 @@ function formsInit(tr, type='add') {
             cell.classList.remove('edited');
           else
             cell.classList.add('edited');
+          
         } else {
           if (data === cell.textContent.trim())
             cell.classList.remove('edited');
           else
             cell.classList.add('edited');
         }
+        
         return evt;
-      });
+      };
+      
+      cell.addEventListener('keyup', editedCheck);
+      cell.addEventListener('blur', editedCheck);
+      cell.addEventListener('paste', evt => setTimeout(editedCheck, 1));
+      
     }
     
     return cell;
@@ -667,13 +676,10 @@ function download(evt) {
     document.getElementById('rar').addEventListener('click', evt => {
       evt.stopPropagation();
       evt.preventDefault();
-      const blurEvt = new Event('Event');
-      const keyupEvt = new Event('Event');
       const editCells = document.querySelectorAll('.edit-cell');
+      const blurEvt = new Event('Event');
       blurEvt.initEvent('blur', true, true);
-      keyupEvt.initEvent('keyup', true, true);
       editCells.forEach(elem => elem.dispatchEvent(blurEvt));
-      editCells.forEach(elem => elem.dispatchEvent(keyupEvt));
       return evt;
     });
 
@@ -737,6 +743,13 @@ function download(evt) {
         .scrollIntoView({ behavior: 'smooth', block: "start" });
       return evt;
     });
+    
+    // edited count update
+    setInterval(() => {
+      document.getElementById('edited-count').textContent
+      = document.querySelectorAll('.edited').length;
+      return;
+    }, 500);
 
     return evt;
   });
