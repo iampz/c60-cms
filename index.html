@@ -3,38 +3,41 @@
 <meta charset="utf-8" />
 <title>กรธ.60 CMS</title>
 <meta name="description" content="CMS สำหรับจัดการข้อมูลกรธ.60" />
-<link href="main.css?v=0.2.3" rel="stylesheet" />
+<link href="main.css?v=0.3.0" rel="stylesheet" />
 </head>
 <body>
 
 <main>
   <header>
-    <div id="data-action">
+    <nav id="data-action">
       <p>
-        <a id="gta" href="#gta">Go to Add</a> 
+        <a id="anr" class="nav-link" href="#anr">Add new record</a> 
         <button id="data-reset">Reset</button>
         <button id="data-copy">Copy</button>
         <button id="data-upload">Upload</button>
         <button id="data-download">Download</button>
       </p>
-    </div>
+    </nav>
     <h1>กรธ.60 CMS</h1>
   </header>
   <section id="data-section"></section>
-  <aside>
-    <p>
-      <a id="ear" href="#ear">Edit all</a> |
-      <a id="rar" href="#rar">Revalidate all</a> |
-      <a id="sar" href="#sar">Save all</a> |
-      <a id="btt" href="#top">Back to top</a>
-    </p>
-  </aside>
+  <footer>
+    <nav>
+      <p>
+        <a id="ear" class="nav-link" href="#ear">Edit all</a>
+        <a id="rar" class="nav-link" href="#rar">Revalidate all</a>
+        <a id="sar" class="nav-link" href="#sar">Save all</a>
+        <a id="car" class="nav-link" href="#car">Cancel all</a>
+        <a id="btt" class="nav-link" href="#top">Back to top</a>
+      </p>
+    </nav>
+  </footer>
 </main>
 
 <input id="clipboard" type="text" />
 
-<script src="get-data.js?v=0.2.3"></script>
-<script src="app.js?v=0.2.3"></script>
+<script src="get-data.js?v=0.3.0"></script>
+<script src="app.js?v=0.3.0"></script>
 
 </body>
 </html>

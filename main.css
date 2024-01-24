@@ -17,7 +17,7 @@ th {
   z-index: 2;
 }
 
-aside {
+nav {
   text-align: right;
   padding-bottom: 10px;
 }
@@ -75,17 +75,21 @@ aside {
   #data-table br+button {
     margin-top: 7px;
   }
-  
-#gta {
-  margin-right: 15px;
-}
 
 #clipboard {
   position: absolute;
   left: -9999px;
 }
+  
+.nav-link {
+  margin-right: 15px;
+}
 
 .add-cell, .edit-cell {
   border: 1px solid #272;
   background: #ffd;
+}
+
+.edited {
+  background: #feb;
 }

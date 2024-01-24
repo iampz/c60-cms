@@ -249,8 +249,12 @@ function editForms(oldTR, index) {
   `;
   
   oldTR.replaceWith(newTR);
-  return formsInit(newTR, 'edit');
-  
+  formsInit(newTR, 'edit');
+  newTR.querySelector('.edit-cell').focus();
+  document.execCommand('selectAll', false, null);
+  document.getSelection().collapseToEnd();
+  return newTR;
+
 }
 
 
@@ -270,7 +274,7 @@ function formsInit(tr, type='add') {
     ? tr.querySelectorAll('.edit-cell')
     : document.querySelectorAll('.add-cell');
     
-  initCells.forEach(cell => {
+  initCells.forEach((cell, index) => {
     
     if (cell.dataset.type === 'html') {
     
@@ -281,7 +285,8 @@ function formsInit(tr, type='add') {
         cleanData(cell);
         simplifyCSS(cell);
         cell.innerHTML = fixChars(cell.innerHTML);
-        if (!cell.textContent) cell.innerHTML = '<p>&nbsp;</p>';
+        if (!cell.textContent.trim())
+          cell.innerHTML = '<p>&nbsp;</p>';
         return evt
       }
       
@@ -319,7 +324,7 @@ function formsInit(tr, type='add') {
         );
       
     } else if (cell.dataset.type === 'array') {
-    textProcessing = evt => {
+      textProcessing = evt => {
 
         if (!cell.textContent)
           cell.innerHTML = '<ul><li>&nbsp;</li></ul>';
@@ -342,6 +347,36 @@ function formsInit(tr, type='add') {
     
     cell.addEventListener('focus', textProcessing)
     cell.addEventListener('blur', textProcessing)
+    
+    if (cell.className === 'edit-cell') {
+      const data = $data[tr.dataset.index][$keys[index][0]];
+      cell.addEventListener('keyup', evt => {
+        if (cell.dataset.type === 'html') {
+          cell.classList.add('edited');
+          if (!data && !cell.textContent.trim()) {
+            cell.classList.remove('edited');
+          }
+          if (cell.innerHTML === data) {
+            cell.classList.remove('edited');
+          }
+        } else if (cell.dataset.type === 'array') {
+          const cellArr = Array.from(
+            cell.querySelectorAll('li')
+          ) .map(li => li.textContent.trim())
+            .filter(txt => txt.length);
+          if (JSON.stringify(data) === JSON.stringify(cellArr))
+            cell.classList.remove('edited');
+          else
+            cell.classList.add('edited');
+        } else {
+          if (data === cell.textContent.trim())
+            cell.classList.remove('edited');
+          else
+            cell.classList.add('edited');
+        }
+        return evt;
+      });
+    }
     
     return cell;
     
@@ -628,10 +663,12 @@ function download(evt) {
       evt.stopPropagation();
       evt.preventDefault();
       const blurEvt = new Event('Event');
+      const keyupEvt = new Event('Event');
+      const editCells = document.querySelectorAll('.edit-cell');
       blurEvt.initEvent('blur', true, true);
-      document
-        .querySelectorAll('.edit-cell')
-        .forEach(elem => elem.dispatchEvent(blurEvt));
+      keyupEvt.initEvent('keyup', true, true);
+      editCells.forEach(elem => elem.dispatchEvent(blurEvt));
+      editCells.forEach(elem => elem.dispatchEvent(keyupEvt));
       return evt;
     });
 
@@ -642,6 +679,9 @@ function download(evt) {
       document
         .querySelectorAll('.data-edit')
         .forEach(btn => btn.click());
+      document
+        .querySelector('footer')
+        .scrollIntoView({ behavior: 'instant', block: "end" });
       return evt;
     });
     
@@ -655,16 +695,31 @@ function download(evt) {
       return evt;
     });
     
-    // go to add
-    document.getElementById('gta').addEventListener('click', evt => {
+    // cancel all records
+    document.getElementById('car').addEventListener('click', evt => {
       evt.stopPropagation();
       evt.preventDefault();
       document
-        .getElementById('btt')
+        .querySelectorAll('.data-cancel')
+        .forEach(btn => btn.click());
+      return evt;
+    });
+    
+    // go to add
+    document.getElementById('anr').addEventListener('click', evt => {
+      let scrollTimeout;
+      evt.stopPropagation();
+      evt.preventDefault();
+      const scrollHandler = addEventListener('scroll', function(e) {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(function() {
+          document.querySelector('.add-cell').focus();
+          removeEventListener('scroll', scrollHandler);
+        }, 200);
+      });
+      document
+        .querySelector('footer')
         .scrollIntoView({ behavior: 'smooth', block: "end" });
-      setTimeout(() =>
-        document.querySelector('.add-cell').focus()
-      , 1000);
       return evt;
     });
     
