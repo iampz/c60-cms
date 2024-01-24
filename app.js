@@ -607,7 +607,7 @@ function upload(evt) {
 
 
 function download(evt) {
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   const file = new Blob([JSON.stringify($data)], {type: 'text/plain'});
   a.href = URL.createObjectURL(file);
   a.download = 'c60-json-' + (new Date).getTime() + '.txt';
@@ -638,7 +638,7 @@ function download(evt) {
       const clipboard = document.getElementById('clipboard');
       clipboard.value = JSON.stringify($data);
       clipboard.select();
-      document.execCommand("copy");
+      document.execCommand('copy');
       return evt;
     });
   
@@ -692,7 +692,7 @@ function download(evt) {
         .forEach(btn => btn.click());
       document
         .querySelector('footer')
-        .scrollIntoView({ behavior: 'instant', block: "end" });
+        .scrollIntoView({ behavior: 'instant', block: 'end' });
       return evt;
     });
     
@@ -730,7 +730,7 @@ function download(evt) {
       });
       document
         .querySelector('footer')
-        .scrollIntoView({ behavior: 'smooth', block: "end" });
+        .scrollIntoView({ behavior: 'smooth', block: 'end' });
       return evt;
     });
     
@@ -740,7 +740,7 @@ function download(evt) {
       evt.preventDefault();
       document
         .getElementById('data-action')
-        .scrollIntoView({ behavior: 'smooth', block: "start" });
+        .scrollIntoView({ behavior: 'smooth', block: 'start' });
       return evt;
     });
     
