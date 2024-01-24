@@ -89,11 +89,17 @@ nav {
   margin-right: 15px;
 }
 
-.add-cell, .edit-cell {
+.add-cell {
   border: 1px solid #272;
+  background: #efe;
+}
+
+.edit-cell {
+  border: 1px solid #772;
   background: #ffd;
 }
 
 .edited {
+  border: 1px solid #971;
   background: #feb;
 }
