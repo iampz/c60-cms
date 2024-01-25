@@ -438,7 +438,11 @@ function editHandler(evt) {
 
 function cancelHandler(evt) {
   const oldTR = evt.target.parentNode.parentNode;
+  const isEdited = oldTR.querySelector('.edited');
   const index = oldTR.dataset.index;
+  if (isEdited &&
+    !confirm('Do you want to discard edited content?')
+  ) return;
   renderTBody(index);
   return evt;
 }
