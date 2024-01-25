@@ -721,16 +721,12 @@ function download(evt) {
       let scrollTimeout;
       evt.stopPropagation();
       evt.preventDefault();
-      const scrollHandler = addEventListener('scroll', function(e) {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(function() {
-          document.querySelector('.add-cell').focus();
-          removeEventListener('scroll', scrollHandler);
-        }, 200);
-      });
       document
         .querySelector('footer')
         .scrollIntoView({ behavior: 'smooth', block: 'end' });
+      setTimeout(() => {
+        document.querySelector('.add-cell').focus();
+      }, 1200);
       return evt;
     });
     
