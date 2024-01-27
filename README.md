@@ -2,7 +2,7 @@
 
 ### วิธีใช้
 1. ดาวน์โหลดข้อมูลตัวอย่าง (หมวด 1)
-https://iampz.github.io/c60-cms/c60-json-section-01.json
+https://iampz.github.io/c60-cms/chapter-01.json
 2. เข้าใช้แอพที่ https://iampz.github.io/c60-cms/
 3. แอพสามารถเพิ่มข้อมูล แก้ไข และลบข้อมูลได้
 4. กดปุ่ม Upload ด้านบนขวาของหน้าจอแล้วเลือกไฟล์ที่ดาวโหลดไว้ในข้อ 1
