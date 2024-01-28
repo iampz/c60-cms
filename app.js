@@ -14,29 +14,30 @@ const $keys = [
 ];
 
 
-function render(options={ id: -1, to: -1, remove: -1 }) {
-  if (options.id + 1) {
+function render({ id, to, remove }) {
+  const isNumber = param => Number.isInteger(param);
+  if (isNumber(id)) {
     const elem = document
-      .querySelector(`[data-index="${options.id}"]`);
-    if (options.to + 1) {
-      const dest = (options.to > options.id)
-        ? document.querySelector(`[data-index="${options.to + 1}"]`)
-        : document.querySelector(`[data-index="${options.to}"]`);
+      .querySelector(`[data-index="${id}"]`);
+    if (isNumber(to)) {
+      const dest = (to > id)
+        ? document.querySelector(`[data-index="${to+1}"]`)
+        : document.querySelector(`[data-index="${to}"]`);
       elem.remove();
       dest.before(elem);
       renderID();
-      return `ID: ${options.id + 1} moved to ID: ${options.to + 1}.`;
+      return `ID: ${id+1} moved to ID: ${to+1}.`;
     } else {
-      renderTBody(options.id);
-      return `ID: ${options.id + 1} was added/edited.`;
+      renderTBody(id);
+      return `ID: ${id+1} was added/edited.`;
     }
   } else {
-    if (options.remove + 1) {
+    if (isNumber(remove)) {
       const elem = document
-        .querySelector(`[data-index="${options.remove}"]`);
+        .querySelector(`[data-index="${remove}"]`);
       elem.remove();
       renderID();
-      return `ID: ${options.remove + 1} was removed.`;
+      return `ID: ${remove+1} was removed.`;
     } else {
       const dataSection = document.getElementById('data-section');
       dataSection.innerHTML = '';
@@ -97,17 +98,19 @@ function renderTHead() {
 
 function renderTBody(rowIndex) {
   
-  const data = rowIndex
+  const hasIndexParam = Number.isInteger(rowIndex);
+  
+  const data = hasIndexParam
     ? [ $data[rowIndex] ]
     : $data;
   
-  const tbody = rowIndex
+  const tbody = hasIndexParam
     ? document.querySelector('tbody')
     : document.createElement('tbody');
   
   data.forEach((row, index) => {
 
-    const id = rowIndex ? rowIndex : index;
+    const id = hasIndexParam ? rowIndex : index;
     const tr = document.createElement('tr');
     tr.dataset.index = id;
     tr
@@ -123,7 +126,7 @@ function renderTBody(rowIndex) {
         : tdData;
       tr.append(td);
       
-      if (rowIndex) {
+      if (hasIndexParam) {
         tbody
           .querySelectorAll('tr')[rowIndex]
           .replaceWith(tr);
@@ -165,7 +168,7 @@ function renderTBody(rowIndex) {
     moveButton.textContent = 'Move';
     moveButton.addEventListener('click', evt => {
       const to = prompt('Move this record to what ID?') - 1;
-      if (to) {
+      if (Number.isInteger(to)) {
         const rowID = evt.target
           .parentNode.parentNode
           .dataset.index;
@@ -174,7 +177,7 @@ function renderTBody(rowIndex) {
           .toSpliced(rowID, 1)
           .toSpliced(to, 0, row)
         );
-        render({ rowID, to });
+        render({ id: rowID, to });
       }      
       return evt;
     });
@@ -186,7 +189,7 @@ function renderTBody(rowIndex) {
           .parentNode.parentNode
           .dataset.index;
         save( $data.toSpliced(rowID, 1) );
-        render({ remove: rowID});
+        render({ remove: rowID });
       }
       return evt;
     });
@@ -420,7 +423,7 @@ function addHandler(evt) {
 
 function editHandler(evt) {
   const tr = evt.target.parentNode.parentNode;
-  const id = tr.dataset.index;
+  const index = tr.dataset.index;
   const editCells = Array.from(
     tr.querySelectorAll('.edit-cell')
   );
@@ -430,8 +433,8 @@ function editHandler(evt) {
       obj[$keys[index][0]] = data;
       return obj;
     }, {});
-  save( $data.toSpliced(id, 1, editedData) );
-  render({ id });
+  save( $data.toSpliced(index, 1, editedData) );
+  render({ id: index });
   return editedData;
 }
 
@@ -443,7 +446,7 @@ function cancelHandler(evt) {
   if (isEdited &&
     !confirm('Do you want to discard edited content?')
   ) return;
-  renderTBody(index);
+  render({ id: index });
   return evt;
 }
 
@@ -598,7 +601,7 @@ function upload(evt) {
         const json = JSON.parse(result);
         $data = json;
         save($data);
-        render();
+        render({});
       } catch (e) {
         alert('Uploaded file is not in JSON format.');
       }
@@ -625,14 +628,14 @@ function download(evt) {
 
   addEventListener('load', evt => {
     
-    render();
+    render({});
   
     // reset button
     document.getElementById('data-reset').addEventListener('click', evt => {
       if ( confirm('ต้องการลบข้อมูลทั้งหมด?') ) {
         $data = [];
         save($data);
-        render();
+        render({});
       }
       return evt;
     });
