@@ -61,15 +61,15 @@ function getData(dataText) {
 
 
 function render({ id, to, remove }) {
-  const isNumber = param => Number.isInteger(param);
-  if (isNumber(id)) {
+  [id, to, remove] = [id, to, remove]
+    .map(val => parseInt(val));
+  if (id+1) {
     const elem = document
       .querySelector(`[data-index="${id}"]`);
-    if (isNumber(to)) {
+    if (to+1) {
       const dest = (to > id)
         ? document.querySelector(`[data-index="${to+1}"]`)
         : document.querySelector(`[data-index="${to}"]`);
-      elem.remove();
       dest.before(elem);
       renderID();
       return `ID: ${id+1} moved to ID: ${to+1}.`;
@@ -78,7 +78,7 @@ function render({ id, to, remove }) {
       return `ID: ${id+1} was added/edited.`;
     }
   } else {
-    if (isNumber(remove)) {
+    if (remove+1) {
       const elem = document
         .querySelector(`[data-index="${remove}"]`);
       elem.remove();
@@ -144,19 +144,17 @@ function renderTHead() {
 
 function renderTBody(rowIndex) {
   
-  const hasIndexParam = Number.isInteger(rowIndex);
-  
-  const data = hasIndexParam
+  const data = rowIndex+1
     ? [ $data[rowIndex] ]
     : $data;
   
-  const tbody = hasIndexParam
+  const tbody = rowIndex+1
     ? document.querySelector('tbody')
     : document.createElement('tbody');
   
   data.forEach((row, index) => {
 
-    const id = hasIndexParam ? rowIndex : index;
+    const id = rowIndex+1 ? rowIndex : index;
     const tr = document.createElement('tr');
     tr.dataset.index = id;
     tr
@@ -172,7 +170,8 @@ function renderTBody(rowIndex) {
         : tdData;
       tr.append(td);
       
-      if (hasIndexParam) {
+      if (rowIndex+1) {
+        console.log(tbody.querySelectorAll('tr'))
         tbody
           .querySelectorAll('tr')[rowIndex]
           .replaceWith(tr);
@@ -214,10 +213,15 @@ function renderTBody(rowIndex) {
     moveButton.textContent = 'Move';
     moveButton.addEventListener('click', evt => {
       const to = prompt('Move this record to what ID?') - 1;
-      if (Number.isInteger(to)) {
-        const rowID = evt.target
-          .parentNode.parentNode
-          .dataset.index;
+      const rowID = evt.target
+        .parentNode.parentNode
+        .dataset.index;
+      if (
+        Number.isInteger(to)
+        && to > -1
+        && to < $data.length
+        && to != rowID
+      ) {
         const row = $data[rowID];
         save($data
           .toSpliced(rowID, 1)
@@ -256,6 +260,7 @@ function addForms(tbody) {
     `<td class="add-cell" data-type="${key[1]}" contenteditable></td>`
   ).join('\n');
   tr.id = 'add-row';
+  tr.dataset.index = tbody.querySelectorAll('tr').length;
   tr.innerHTML = `
     <td>${$data.length + 1}</td>
     ${formsTD}
@@ -469,7 +474,7 @@ function addHandler(evt) {
 
 function editHandler(evt) {
   const tr = evt.target.parentNode.parentNode;
-  const index = tr.dataset.index;
+  const id = tr.dataset.index;
   const editCells = Array.from(
     tr.querySelectorAll('.edit-cell')
   );
@@ -479,8 +484,8 @@ function editHandler(evt) {
       obj[$keys[index][0]] = data;
       return obj;
     }, {});
-  save( $data.toSpliced(index, 1, editedData) );
-  render({ id: index });
+  save( $data.toSpliced(id, 1, editedData) );
+  render({ id });
   return editedData;
 }
 
