@@ -3,6 +3,7 @@
 ### วิธีใช้
 1. ดาวน์โหลดข้อมูลตัวอย่าง
 [หมวด 1](https://iampz.github.io/c60-cms/data/chapter-01.json),
+[หมวด 16](https://iampz.github.io/c60-cms/data/chapter-16.json),
 [บทเฉพาะกาล](https://iampz.github.io/c60-cms/data/transitory-provisions.json)
 2. เข้าใช้แอพที่ https://iampz.github.io/c60-cms/
 3. แอพสามารถเพิ่มข้อมูล แก้ไข และลบข้อมูลได้

@@ -555,6 +555,8 @@ function fixChars(str) {
     .replace(/ํา/g, 'ำ')
     .replace(/่ื/g, 'ื่')
     .replace(/่ี/g, 'ี่')
+    .replace(/้ื/g, 'ื้')
+    .replace(/้ี/g, 'ี้')
     .replace(/[่]{2,}/g, '่')
     .replace(/[้]{2,}/g, '้')
     .replace(/[๊]{2,}/g, '๊')
