@@ -3,6 +3,9 @@
 ### วิธีใช้
 1. ดาวน์โหลดข้อมูลตัวอย่าง
 [หมวด 1](https://iampz.github.io/c60-cms/data/chapter-01.json),
+[หมวด 13](https://iampz.github.io/c60-cms/data/chapter-13.json),
+[หมวด 14](https://iampz.github.io/c60-cms/data/chapter-14.json),
+[หมวด 15](https://iampz.github.io/c60-cms/data/chapter-15.json),
 [หมวด 16](https://iampz.github.io/c60-cms/data/chapter-16.json),
 [บทเฉพาะกาล](https://iampz.github.io/c60-cms/data/transitory-provisions.json)
 2. เข้าใช้แอพที่ https://iampz.github.io/c60-cms/
