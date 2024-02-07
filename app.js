@@ -810,5 +810,16 @@ function download(evt) {
     return evt;
   });
   
+  addEventListener('beforeunload', evt => {
+    const isAdding = !Array.from(
+      document.querySelectorAll('.add-cell')
+    ).every(elem => elem.textContent.trim() === '');
+    const isEditing = (
+      document.getElementById('edited-count').textContent !== '0'
+    );
+    if (isAdding || isEditing) evt.preventDefault();
+    return evt;
+  });
+  
   return true;
 })({});
