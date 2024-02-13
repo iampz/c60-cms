@@ -171,7 +171,6 @@ function renderTBody(rowIndex) {
       tr.append(td);
       
       if (rowIndex+1) {
-        console.log(tbody.querySelectorAll('tr'))
         tbody
           .querySelectorAll('tr')[rowIndex]
           .replaceWith(tr);
@@ -495,7 +494,7 @@ function cancelHandler(evt) {
   const isEdited = oldTR.querySelector('.edited');
   const index = oldTR.dataset.index;
   if (isEdited &&
-    !confirm('Do you want to discard edited content?')
+    !confirm('มีข้อมูลที่กำลังแก้ไขอยู่ ต้องการยกเลิกการแก้ไข?')
   ) return;
   render({ id: index });
   return evt;
@@ -641,38 +640,53 @@ function simplifyCSS(elem) {
   return elem;
 }
 
+
+function checkUnsaved() {
+  const isAdding = !Array.from(
+    document.querySelectorAll('.add-cell')
+  ).every(elem => elem.textContent.trim() === '');
+  const isEditing = (
+    document.getElementById('edited-count').textContent !== '0'
+  );
+  return (isAdding || isEditing);
+}
+
  
 function upload(evt) {
-  const files = evt.target
-    ? evt.target.files
-    : evt.files;
-  if (files.length) {
-    const reader = new FileReader();
-    reader.addEventListener('load', evt => {
-      const result = evt.target.result;
-      try {
-        const json = getData(result);
-        $data = json;
-        save($data);
-        render({});
-      } catch (e) {
-        alert('Uploaded file is not in JSON format.');
-      }
-      return evt;
-    });
-    reader.readAsText(files[0]);
+  if (confirm('ข้อมูลปัจจุบันจะหายไปและถูกแทนที่ด้วยข้อมูลใหม่ ต้องการอัพโหลดข้อมูล?')) {
+    const files = evt.target
+      ? evt.target.files
+      : evt.files;
+    if (files.length) {
+      const reader = new FileReader();
+      reader.addEventListener('load', evt => {
+        const result = evt.target.result;
+        try {
+          const json = getData(result);
+          $data = json;
+          save($data);
+          render({});
+        } catch (e) {
+          alert('Uploaded file is not in JSON format.');
+        }
+        return evt;
+      });
+      reader.readAsText(files[0]);
+    }
   }
   return evt;
 }
 
 
 function download(evt) {
-  const a = document.createElement('a');
-  const file = new Blob([JSON.stringify($data)], {type: 'text/plain'});
-  a.href = URL.createObjectURL(file);
-  a.download = 'c60-json-' + (new Date).getTime() + '.txt';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  if (!checkUnsaved() || confirm('มีข้อมูลที่ถูกแก้ไขแต่ยังไม่ได้บันทึก ต้องการดาวน์โหลดข้อมูลเฉพาะที่บันทึกแล้ว?')) {
+    const a = document.createElement('a');
+    const file = new Blob([JSON.stringify($data)], {type: 'text/plain'});
+    a.href = URL.createObjectURL(file);
+    a.download = 'c60-json-' + (new Date).getTime() + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
   return evt;
 }
 
@@ -811,13 +825,7 @@ function download(evt) {
   });
   
   addEventListener('beforeunload', evt => {
-    const isAdding = !Array.from(
-      document.querySelectorAll('.add-cell')
-    ).every(elem => elem.textContent.trim() === '');
-    const isEditing = (
-      document.getElementById('edited-count').textContent !== '0'
-    );
-    if (isAdding || isEditing) evt.preventDefault();
+    if (checkUnsaved()) evt.preventDefault();
     return evt;
   });
   
