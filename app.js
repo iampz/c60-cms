@@ -784,9 +784,15 @@ function download(evt) {
     document.getElementById('car').addEventListener('click', evt => {
       evt.stopPropagation();
       evt.preventDefault();
-      document
-        .querySelectorAll('.data-cancel')
-        .forEach(btn => btn.click());
+      const editedCount = document
+        .getElementById('edited-count')
+        .textContent - 0;
+      if (editedCount)
+        alert('มีข้อมูลที่ถูกแก้ไขแต่ยังไม่ได้บันทึกอยู่ ไม่สามารถยกเลิกทั้งหมดได้');
+      else
+        document
+          .querySelectorAll('.data-cancel')
+          .forEach(btn => btn.click());
       return evt;
     });
     
@@ -817,7 +823,7 @@ function download(evt) {
     // edited count update
     setInterval(() => {
       document.getElementById('edited-count').textContent
-      = document.querySelectorAll('.edited').length;
+      = document.querySelectorAll('tr:has(.edited)').length;
       return;
     }, 500);
 
