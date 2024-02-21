@@ -549,6 +549,7 @@ function fixChars(str) {
     .replace(/+/g, '์')
     .replace(/+/g, 'ิ')
     .replace(/+/g, 'ี')
+    .replace(/+/g, 'ึ')
     .replace(/+/g, 'ื')
     .replace(/+/g, 'ั')
     .replace(/ํา/g, 'ำ')
