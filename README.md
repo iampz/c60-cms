@@ -3,6 +3,14 @@
 ### วิธีใช้
 1. ดาวน์โหลดข้อมูลตัวอย่าง
 [หมวด 1](https://iampz.github.io/c60-cms/data/chapter-01.json),
+[หมวด 2](https://iampz.github.io/c60-cms/data/chapter-02.json),
+[หมวด 3](https://iampz.github.io/c60-cms/data/chapter-03.json),
+[หมวด 4](https://iampz.github.io/c60-cms/data/chapter-04.json),
+[หมวด 5](https://iampz.github.io/c60-cms/data/chapter-05.json),
+[หมวด 6](https://iampz.github.io/c60-cms/data/chapter-06.json),
+[หมวด 7](https://iampz.github.io/c60-cms/data/chapter-07.json),
+[หมวด 8](https://iampz.github.io/c60-cms/data/chapter-08.json),
+[หมวด 9](https://iampz.github.io/c60-cms/data/chapter-09.json),
 [หมวด 10](https://iampz.github.io/c60-cms/data/chapter-10.json),
 [หมวด 11](https://iampz.github.io/c60-cms/data/chapter-11.json),
 [หมวด 12](https://iampz.github.io/c60-cms/data/chapter-12.json),
